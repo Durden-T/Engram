@@ -1,0 +1,148 @@
+/**
+ * DevLog 视图样式
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 12px;
+}
+
+/* 工具栏（DevLog 特有布局） */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.toolbarRight {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+/* 终端区域 */
+.terminal {
+    flex: 1;
+    padding: 12px;
+    background: var(--engram-bg-terminal, #1a1a2e);
+    border: 1px solid var(--engram-border-default);
+    border-radius: var(--engram-radius-lg);
+    overflow-y: auto;
+    font-family: var(--engram-font-mono);
+    font-size: var(--engram-font-size-md);
+    line-height: 1.6;
+}
+
+.terminalEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: var(--engram-space-3);
+    color: var(--engram-text-disabled);
+}
+
+/* 日志条目 */
+.logEntry {
+    margin-bottom: 2px;
+}
+
+.logLine {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--engram-space-2);
+    padding: 2px 4px;
+    border-radius: var(--engram-radius-sm);
+    transition: background var(--engram-transition-fast);
+}
+
+.hasData {
+    cursor: pointer;
+}
+
+.logLine:hover {
+    background: var(--engram-bg-hover);
+}
+
+.logExpand {
+    display: flex;
+    align-items: center;
+    color: var(--engram-text-muted);
+    flex-shrink: 0;
+}
+
+.logTime {
+    color: var(--engram-text-muted);
+    flex-shrink: 0;
+}
+
+.logModule {
+    color: #8b5cf6;
+    flex-shrink: 0;
+    white-space: pre;
+}
+
+.logLevel {
+    flex-shrink: 0;
+    white-space: pre;
+}
+
+.logMessage {
+    color: var(--engram-text-primary);
+    word-break: break-word;
+}
+
+/* 日志级别颜色 */
+.levelDebug {
+    color: #6c757d;
+}
+
+.levelInfo {
+    color: #17a2b8;
+}
+
+.levelSuccess {
+    color: #28a745;
+}
+
+.levelWarn {
+    color: #ffc107;
+}
+
+.levelError {
+    color: #dc3545;
+}
+
+/* 日志数据详情 */
+.logData {
+    margin-left: 32px;
+    padding: var(--engram-space-2) var(--engram-space-3);
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 2px solid var(--engram-text-disabled);
+    border-radius: 0 var(--engram-radius-sm) var(--engram-radius-sm) 0;
+}
+
+.logData pre {
+    margin: 0;
+    color: var(--engram-text-secondary);
+    font-size: var(--engram-font-size-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 状态栏 */
+.statusbar {
+    display: flex;
+    align-items: center;
+    gap: var(--engram-space-2);
+    padding: var(--engram-space-2) var(--engram-space-3);
+    background: var(--engram-bg-elevated);
+    border-radius: var(--engram-radius-md);
+    font-size: var(--engram-font-size-md);
+    color: var(--engram-text-muted);
+}

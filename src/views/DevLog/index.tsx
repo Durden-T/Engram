@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Logger, LogEntry, LogLevel, LogLevelConfig } from '../../infrastructure/logger';
 import { LogEntryItem } from './LogEntryItem';
+import styles from './styles/index.module.css';
 
 // 模块列表（用于过滤）
 const MODULES = [
@@ -111,7 +112,7 @@ export const DevLog: React.FC = () => {
     }, []);
 
     return (
-        <div className="engram-dev-log">
+        <div className={styles.container}>
             {/* 页面标题 */}
             <div className="engram-page-header">
                 <Terminal size={24} />
@@ -119,7 +120,7 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 工具栏 */}
-            <div className="engram-log-toolbar">
+            <div className={styles.toolbar}>
                 {/* 级别过滤 */}
                 <div className="engram-dropdown">
                     <button
@@ -192,7 +193,7 @@ export const DevLog: React.FC = () => {
                 </div>
 
                 {/* 右侧按钮组 */}
-                <div className="engram-toolbar-right">
+                <div className={styles.toolbarRight}>
                     {/* 自动滚动 */}
                     <button
                         className={`engram-btn engram-btn-ghost ${autoScroll ? 'active' : ''}`}
@@ -224,9 +225,9 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 终端区域 */}
-            <div className="engram-terminal" ref={terminalRef}>
+            <div className={styles.terminal} ref={terminalRef}>
                 {filteredLogs.length === 0 ? (
-                    <div className="engram-terminal-empty">
+                    <div className={styles.terminalEmpty}>
                         <Terminal size={48} strokeWidth={1} />
                         <p>暂无日志记录</p>
                     </div>
@@ -241,7 +242,7 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 状态栏 */}
-            <div className="engram-log-statusbar">
+            <div className={styles.statusbar}>
                 <span>共 {logs.length} 条日志</span>
                 {filteredLogs.length !== logs.length && (
                     <span>（显示 {filteredLogs.length} 条）</span>

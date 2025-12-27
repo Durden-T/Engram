@@ -4,6 +4,7 @@ import { Database, Cpu, Server, Terminal as TermIcon, Zap } from 'lucide-react';
 import { Logger } from '../../infrastructure/logger';
 import type { LogEntry } from '../../infrastructure/logger/types';
 import { getSTContext } from '../../infrastructure/adapter/STBridge';
+import styles from './styles/index.module.css';
 
 interface DashboardProps {
     onNavigate: (path: string) => void;
@@ -46,11 +47,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     const userName = stContext?.name1 || 'User';
 
     return (
-        <div className="engram-dashboard">
-            <div className="engram-dashboard-grid">
+        <div className={styles.engramDashboard}>
+            <div className={styles.engramDashboardGrid}>
 
                 {/* 1. Status Monitors (环境监测) - 顶部横向三列 */}
-                <div className="dashboard-stats-row">
+                <div className={styles.dashboardStatsRow}>
                     <StatsCard
                         title="ACTIVE MODEL"
                         value={stContext ? 'Connected' : 'Offline'}
@@ -73,46 +74,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* 3. Quick Actions (快捷入口) - 下方 */}
-                <div className="dashboard-cell cell-actions">
-                    <div className="cell-header">
+                <div className={`${styles.dashboardCell} ${styles.cellActions}`}>
+                    <div className={styles.cellHeader}>
                         <Zap size={16} />
                         <span>QUICK ACTIONS</span>
                     </div>
-                    <div className="actions-grid">
-                        <button className="action-tile" onClick={() => onNavigate('/memory')}>
-                            <span className="tile-icon">📜</span>
-                            <span className="tile-label">Memory Stream</span>
+                    <div className={styles.actionsGrid}>
+                        <button className={styles.actionTile} onClick={() => onNavigate('/memory')}>
+                            <span className={styles.tileIcon}>📜</span>
+                            <span className={styles.tileLabel}>Memory Stream</span>
                         </button>
-                        <button className="action-tile" onClick={() => onNavigate('/graph')}>
-                            <span className="tile-icon">🕸️</span>
-                            <span className="tile-label">Knowledge Graph</span>
+                        <button className={styles.actionTile} onClick={() => onNavigate('/graph')}>
+                            <span className={styles.tileIcon}>🕸️</span>
+                            <span className={styles.tileLabel}>Knowledge Graph</span>
                         </button>
-                        <button className="action-tile" onClick={() => onNavigate('/brain')}>
-                            <span className="tile-icon">🧠</span>
-                            <span className="tile-label">Brain Console</span>
+                        <button className={styles.actionTile} onClick={() => onNavigate('/brain')}>
+                            <span className={styles.tileIcon}>🧠</span>
+                            <span className={styles.tileLabel}>Brain Console</span>
                         </button>
-                        <button className="action-tile" onClick={() => onNavigate('/settings')}>
-                            <span className="tile-icon">⚙️</span>
-                            <span className="tile-label">Settings</span>
+                        <button className={styles.actionTile} onClick={() => onNavigate('/settings')}>
+                            <span className={styles.tileIcon}>⚙️</span>
+                            <span className={styles.tileLabel}>Settings</span>
                         </button>
                     </div>
                 </div>
 
                 {/* 4. Mini Terminal (迷你终端) - 右下 */}
-                <div className="dashboard-cell cell-terminal">
-                    <div className="cell-header">
+                <div className={`${styles.dashboardCell} ${styles.cellTerminal}`}>
+                    <div className={styles.cellHeader}>
                         <TermIcon size={16} />
                         <span>SYSTEM LOGS</span>
-                        <button className="mini-link" onClick={() => onNavigate('/dev')}>VIEW ALL</button>
+                        <button className={styles.miniLink} onClick={() => onNavigate('/dev')}>VIEW ALL</button>
                     </div>
-                    <div className="mini-terminal-content">
+                    <div className={styles.miniTerminalContent}>
                         {logs.length === 0 ? (
-                            <div className="mini-log-empty">No activity recorded</div>
+                            <div className={styles.miniLogEmpty}>No activity recorded</div>
                         ) : (
                             logs.map(log => (
-                                <div key={log.id} className={`mini-log-line level-${log.level}`}>
-                                    <span className="log-time">[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
-                                    <span className="log-msg">{log.message}</span>
+                                <div key={log.id} className={`${styles.miniLogLine} ${styles['level-' + log.level]}`}>
+                                    <span className={styles.logTime}>[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
+                                    <span className={styles.logMsg}>{log.message}</span>
                                 </div>
                             ))
                         )}

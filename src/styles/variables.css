@@ -1,0 +1,95 @@
+/**
+ * Engram Design Token 系统
+ * 统一管理颜色、间距、字体等设计变量
+ */
+
+:root {
+    /* ========== 品牌色 ========== */
+    --engram-primary: #f97316;
+    --engram-secondary: #ec4899;
+    --engram-gradient: linear-gradient(135deg, var(--engram-primary), var(--engram-secondary));
+
+    /* 主色透明度变体 */
+    --engram-primary-10: rgba(249, 115, 22, 0.1);
+    --engram-primary-15: rgba(249, 115, 22, 0.15);
+    --engram-primary-20: rgba(249, 115, 22, 0.2);
+    --engram-primary-30: rgba(249, 115, 22, 0.3);
+    --engram-primary-50: rgba(249, 115, 22, 0.5);
+
+    /* ========== 语义色 ========== */
+    --engram-success: #4ade80;
+    --engram-warning: #facc15;
+    --engram-error: #ef4444;
+    --engram-error-light: #f87171;
+    --engram-info: #38bdf8;
+
+    /* ========== 背景色 ========== */
+    --engram-bg-base: rgba(30, 30, 35, 0.95);
+    --engram-bg-elevated: rgba(0, 0, 0, 0.2);
+    --engram-bg-surface: rgba(255, 255, 255, 0.03);
+    --engram-bg-hover: rgba(255, 255, 255, 0.05);
+    --engram-bg-active: rgba(255, 255, 255, 0.1);
+    --engram-bg-input: rgba(255, 255, 255, 0.05);
+    --engram-bg-terminal: #1a1a2e;
+
+    /* ========== 文字色 ========== */
+    --engram-text-primary: #e2e8f0;
+    --engram-text-secondary: #94a3b8;
+    --engram-text-muted: #64748b;
+    --engram-text-disabled: #475569;
+
+    /* ========== 边框 ========== */
+    --engram-border-default: rgba(148, 163, 184, 0.2);
+    --engram-border-light: rgba(148, 163, 184, 0.1);
+    --engram-border-focus: rgba(249, 115, 22, 0.5);
+    --engram-border-error: rgba(239, 68, 68, 0.5);
+
+    /* ========== 间距 ========== */
+    --engram-space-1: 4px;
+    --engram-space-2: 8px;
+    --engram-space-3: 12px;
+    --engram-space-4: 16px;
+    --engram-space-5: 24px;
+    --engram-space-6: 32px;
+
+    /* ========== 圆角 ========== */
+    --engram-radius-sm: 4px;
+    --engram-radius-md: 6px;
+    --engram-radius-lg: 8px;
+    --engram-radius-xl: 12px;
+    --engram-radius-full: 9999px;
+
+    /* ========== 字体 ========== */
+    --engram-font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --engram-font-size-xs: 10px;
+    --engram-font-size-sm: 11px;
+    --engram-font-size-md: 12px;
+    --engram-font-size-lg: 13px;
+    --engram-font-size-xl: 14px;
+    --engram-font-size-2xl: 18px;
+    --engram-font-size-3xl: 20px;
+
+    /* ========== 阴影 ========== */
+    --engram-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --engram-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --engram-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --engram-shadow-glow: 0 0 20px rgba(249, 115, 22, 0.5);
+    --engram-shadow-glow-strong: 0 0 30px rgba(249, 115, 22, 0.7);
+
+    /* ========== 动画 ========== */
+    --engram-transition-fast: 0.1s ease-out;
+    --engram-transition-normal: 0.2s ease-out;
+    --engram-transition-slow: 0.3s ease-out;
+
+    /* ========== Z-Index ========== */
+    --engram-z-dropdown: 100;
+    --engram-z-modal: 1000;
+    --engram-z-panel: 10000;
+
+    /* ========== 尺寸 ========== */
+    --engram-sidebar-width: 48px;
+    --engram-header-height: 48px;
+    --engram-icon-sm: 14px;
+    --engram-icon-md: 16px;
+    --engram-icon-lg: 24px;
+}

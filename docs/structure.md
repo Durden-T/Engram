@@ -33,7 +33,7 @@ graph LR
 | 层级 | 技术选型 | 职责 |
 |------|----------|------|
 | **View** | React 18 + React Flow | 现代化 UI，可视化记忆图谱编辑器 |
-| **Styling** | Tailwind CSS | 原子化 CSS，使用 `eg-` 前缀避免与 ST 冲突 |
+| **Styling** | CSS Modules + Design Tokens | 组件级样式隔离 + 统一设计变量系统 |
 | **Icons** | Lucide React | 轻量级 SVG 图标库，按需导入，支持 Tree-shaking |
 | **Logic** | TypeScript + RxJS | 强类型业务逻辑，处理复杂的异步事件流 |
 | **Store** | Zustand + Immer | UI 状态管理，不可变数据操作 |
