@@ -4,7 +4,6 @@
 import React from 'react';
 import { Edit2, Copy, Trash2, Check, Server, Cloud } from 'lucide-react';
 import type { LLMPreset } from '../../types';
-import styles from './styles.module.css';
 
 interface PresetCardProps {
     preset: LLMPreset;
@@ -35,38 +34,52 @@ export const PresetCard: React.FC<PresetCardProps> = ({
 
     return (
         <div
-            className={`${styles.card} ${isSelected ? styles.selected : ''}`}
+            className={`p-3 cursor-pointer bg-surface backdrop-blur-md border border-border-light rounded-lg shadow-sm transition-all duration-200 hover:bg-hover hover:border-border-default hover:shadow-md ${isSelected ? 'bg-primary-10 border-primary-30' : ''
+                }`}
             onClick={onSelect}
         >
-            <div className={styles.header}>
-                <div className={styles.icon}>
+            <div className="flex items-start gap-2.5">
+                <div
+                    className={`w-8 h-8 flex items-center justify-center rounded-md ${isSelected ? 'bg-primary-20 text-primary' : 'bg-hover text-text-secondary'
+                        }`}
+                >
                     <SourceIcon size={16} />
                 </div>
-                <div className={styles.info}>
-                    <h4 className={styles.name}>
+                <div className="flex-1 min-w-0">
+                    <h4 className="m-0 text-[14px] font-medium text-primary flex items-center gap-2">
                         {preset.name}
-                        {preset.isDefault && <span className={styles.defaultBadge}>默认</span>}
+                        {preset.isDefault && (
+                            <span className="px-2 py-[2px] text-[10px] bg-primary-20 text-primary rounded-sm">
+                                默认
+                            </span>
+                        )}
                     </h4>
-                    <p className={styles.meta}>
+                    <p className="mt-1 text-[12px] text-muted">
                         <span>{sourceLabel}</span>
-                        <span className={styles.divider}>·</span>
+                        <span className="mx-1">·</span>
                         <span>{modelName}</span>
                     </p>
                 </div>
                 {isSelected && (
-                    <div className={styles.check}>
+                    <div className="text-primary">
                         <Check size={16} />
                     </div>
                 )}
             </div>
 
-            <div className={styles.params}>
-                <span className={styles.paramTag}>T: {preset.parameters.temperature}</span>
-                <span className={styles.paramTag}>P: {preset.parameters.topP}</span>
-                <span className={styles.paramTag}>Max: {preset.parameters.maxTokens}</span>
+            <div className="flex gap-2 mt-2.5 flex-wrap">
+                <span className="px-2 py-[2px] text-[10px] bg-hover text-text-secondary rounded-sm font-mono">
+                    T: {preset.parameters.temperature}
+                </span>
+                <span className="px-2 py-[2px] text-[10px] bg-hover text-text-secondary rounded-sm font-mono">
+                    P: {preset.parameters.topP}
+                </span>
+                <span className="px-2 py-[2px] text-[10px] bg-hover text-text-secondary rounded-sm font-mono">
+                    Max: {preset.parameters.maxTokens}
+                </span>
             </div>
 
-            <div className={styles.actions} onClick={(e) => e.stopPropagation()}>
+            <div className="flex gap-1 mt-2.5 pt-2.5 border-t border-border-light" onClick={(e) => e.stopPropagation()}>
                 <button className="engram-icon-btn" onClick={onEdit} title="编辑">
                     <Edit2 size={14} />
                 </button>

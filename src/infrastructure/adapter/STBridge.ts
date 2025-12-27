@@ -97,6 +97,9 @@ const ENGRAM_ICON_SVG = `<svg viewBox="0 0 400 592" fill="currentColor" xmlns="h
 /**
  * 创建顶栏按钮入口（模仿 ST 的 drawer 结构）
  */
+/**
+ * 创建顶栏按钮入口（模仿 ST 的 drawer 结构）
+ */
 function createTopBarButton(): void {
     const holder = document.querySelector('#top-settings-holder');
     const wiButton = document.querySelector('#WI-SP-button');
@@ -144,7 +147,8 @@ function createTopBarButton(): void {
  */
 function createFloatingOrb(): void {
     const orb = document.createElement('div');
-    orb.className = 'engram-orb';
+    // 使用 Tailwind 类
+    orb.className = 'fixed bottom-5 right-5 w-12 h-12 rounded-full cursor-pointer z-[9999] flex items-center justify-center transition-transform duration-200 bg-gradient-to-br from-orange-500 to-pink-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] hover:scale-110 hover:shadow-[0_0_30px_rgba(249,115,22,0.7)] text-white';
     orb.title = 'Engram - 记忆操作系统';
     orb.innerHTML = ENGRAM_ICON_SVG;
     orb.addEventListener('click', toggleMainPanel);
@@ -191,7 +195,8 @@ function toggleMainPanel(): void {
  */
 function createMainPanel(): HTMLElement {
     const panel = document.createElement('div');
-    panel.className = 'engram-panel';
+    // 使用 Tailwind 类
+    panel.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[1200px] h-[70vh] rounded-2xl overflow-hidden z-[10000] flex flex-col bg-[#1e1e2d]/95 backdrop-blur-xl border border-slate-400/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)]';
     panel.id = 'engram-panel-root';
 
     // 使用注入的渲染器
@@ -200,15 +205,16 @@ function createMainPanel(): HTMLElement {
     } else {
         // 降级到简单 HTML（渲染器未注入时）
         panel.innerHTML = `
-            <div class="engram-panel-header">
-                <h2>🧠 Engram</h2>
-                <button class="engram-panel-close">&times;</button>
+            <div class="flex items-center justify-between p-4 border-b border-slate-400/20">
+                <h2 class="m-0 text-lg text-slate-200 flex items-center gap-2">🧠 Engram</h2>
+                <button class="bg-transparent border-none text-slate-400 text-2xl cursor-pointer p-1 hover:text-slate-200">&times;</button>
             </div>
-            <div class="engram-panel-content">
+            <div class="flex-1 overflow-auto p-5">
                 <p style="color: #94a3b8;">React 渲染器未加载，请检查配置。</p>
             </div>
         `;
-        panel.querySelector('.engram-panel-close')?.addEventListener('click', toggleMainPanel);
+        // 注意：这里需要根据新的 class 选择器绑定事件
+        panel.querySelector('button')?.addEventListener('click', toggleMainPanel);
     }
 
     return panel;

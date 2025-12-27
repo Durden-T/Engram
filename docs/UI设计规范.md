@@ -195,21 +195,72 @@ export const NAV_ITEMS: NavItem[] = [
 
 ## 6. 样式规范
 
-### 6.1 CSS 前缀
+### 6.1 技术栈
 
-所有 Engram 样式使用 `eg-` 前缀，避免与 SillyTavern 样式冲突。
+本项目全面采用 **Tailwind CSS** 进行样式开发，遵循 **Locality of Behavior (LoB)** 原则，将样式直接写在组件定义的 TSX 文件中。
 
-### 6.2 主题变量
+### 6.2 开发原则
 
-继承 SillyTavern 主题变量：
-- `--SmartThemeBodyColor`: 文字颜色
-- `--SmartThemeBlurTintColor`: 背景色
-- `--SmartThemeBorderColor`: 边框色
-- `--SmartThemeQuoteColor`: 强调色
+1.  **Utility-First**: 优先使用 Tailwind 工具类（如 `flex`, `p-4`, `text-primary`）。
+2.  **Locality of Behavior**: 样式与结构不分离，禁止使用 `.module.css` 或独立的 `.css` 文件（全局样式除外）。
+3.  **Design Tokens**: 通过 `tailwind.config.js` 将 CSS 变量映射为 Tailwind 主题，确保设计一致性。
 
-### 6.3 图标
+### 6.3 Design Token 映射示例
 
-使用 Lucide React，按需导入：
+| CSS 变量 | Tailwind 类名 | 用途 |
+|----------|---------------|------|
+| `--engram-primary` | `text-primary` / `bg-primary` | 品牌主色 |
+| `--engram-bg-base` | `bg-bg-base` | 基础背景 |
+| `--engram-bg-surface`| `bg-bg-surface` | 卡片背景 |
+| `--engram-text-primary`| `text-text-primary` | 主要文字 |
+| `--engram-radius-md` | `rounded-md` | 中等圆角 |
+
+**代码对比**：
+
+❌ **旧方式 (CSS)**:
+```css
+.card {
+    background: var(--engram-bg-surface);
+    border-radius: var(--engram-radius-md);
+    padding: var(--engram-space-4);
+}
+```
+
+✅ **新方式 (Tailwind)**:
 ```tsx
-import { List, Network, Zap, Key, Settings, X, Search, Maximize2 } from 'lucide-react';
+<div className="bg-bg-surface rounded-md p-4">
+    ...
+</div>
+```
+
+### 6.4 共享组件样式 (`@layer components`)
+
+为了复用高频组件样式，我们在 `src/styles/main.css` 中使用 Tailwind 的 `@layer components` 定义了一组语义化类名。
+
+| 类名 | 对应 Tailwind 组合 | 用途 |
+|------|-----------------------|------|
+| `.engram-btn` | `inline-flex items-center ...` | 基础按钮容器 |
+| `.engram-btn-primary` | `bg-gradient ... text-white` | 主要按钮 |
+| `.engram-card` | `bg-bg-surface backdrop-blur-md ...` | 通用卡片样式 |
+| `.engram-page-header` | `flex items-center border-b ...` | 页面标题栏 |
+| `.engram-icon-btn` | `w-8 h-8 flex center ...` | 图标按钮 |
+
+使用示例：
+```tsx
+<div className="engram-card p-4">
+    <div className="engram-page-header">
+        <h2>Title</h2>
+        <button className="engram-btn engram-btn-primary">Action</button>
+    </div>
+</div>
+```
+
+### 6.5 图标
+
+使用 [Lucide React](https://lucide.dev/) 图标库，按需导入，通过 Tailwind 设置颜色和大小：
+
+```tsx
+import { Settings } from 'lucide-react';
+
+<Settings className="w-5 h-5 text-text-secondary hover:text-primary transition-colors" />
 ```

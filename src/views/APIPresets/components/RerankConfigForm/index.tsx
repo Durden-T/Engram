@@ -4,7 +4,7 @@
 import React from 'react';
 import { TextField, NumberField, SwitchField, FormSection } from '../FormField';
 import type { RerankConfig } from '../../types';
-import styles from './styles.module.css';
+
 
 interface RerankConfigFormProps {
     config: RerankConfig;
@@ -29,7 +29,7 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
     };
 
     return (
-        <div className={styles.form}>
+        <div className="">
             <FormSection title="Rerank 设置" description="配置重排序模型以优化检索结果">
                 <SwitchField
                     label="启用 Rerank"
@@ -70,14 +70,17 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                         />
 
                         {/* 常用模型快速选择 */}
-                        <div className={styles.quickSelect}>
-                            <span className={styles.quickSelectLabel}>常用模型：</span>
-                            <div className={styles.quickSelectChips}>
+                        <div className="mt-2">
+                            <span className="block text-md text-muted mb-2">常用模型：</span>
+                            <div className="flex flex-wrap gap-2">
                                 {COMMON_MODELS.map((model) => (
                                     <button
                                         key={model}
                                         type="button"
-                                        className={`${styles.chip} ${config.model === model ? styles.chipActive : ''}`}
+                                        className={`px-3 py-1 border border-border-default rounded-sm text-sm cursor-pointer transition-all hover:border-border-focus hover:text-primary ${config.model === model
+                                            ? 'bg-primary-20 border-primary text-primary'
+                                            : 'bg-transparent text-text-secondary'
+                                            }`}
                                         onClick={() => updateConfig({ model })}
                                     >
                                         {model.split('/').pop()}

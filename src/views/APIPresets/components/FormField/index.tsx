@@ -2,7 +2,6 @@
  * 通用表单字段组件
  */
 import React from 'react';
-import styles from './styles.module.css';
 
 // ==================== 基础 Props ====================
 
@@ -37,21 +36,21 @@ export const TextField: React.FC<TextFieldProps> = ({
     disabled,
 }) => {
     return (
-        <div className={`${styles.field} ${className || ''}`}>
-            <label className={styles.label}>
+        <div className={`mb-4 ${className || ''}`}>
+            <label className="block mb-2 text-lg font-medium text-text-primary">
                 {label}
-                {required && <span className={styles.required}>*</span>}
+                {required && <span className="text-primary ml-0.5">*</span>}
             </label>
-            {description && <p className={styles.desc}>{description}</p>}
+            {description && <p className="m-0 mb-2 text-md text-muted">{description}</p>}
             <input
                 type={type}
-                className={`${styles.input} ${error ? styles.hasError : ''}`}
+                className={`w-full px-3 py-2.5 bg-input border border-border-default rounded-md text-text-primary text-xl transition-all outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-10 ${error ? '!border-error' : ''}`}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
             />
-            {error && <span className={styles.error}>{error}</span>}
+            {error && <span className="block mt-1 text-md text-error-light">{error}</span>}
         </div>
     );
 };
@@ -83,20 +82,20 @@ export const NumberField: React.FC<NumberFieldProps> = ({
     disabled,
 }) => {
     return (
-        <div className={`${styles.field} ${className || ''}`}>
-            <div className={styles.labelRow}>
-                <label className={styles.label}>
+        <div className={`mb-4 ${className || ''}`}>
+            <div className="flex items-center justify-between mb-2">
+                <label className="block text-lg font-medium text-text-primary">
                     {label}
-                    {required && <span className={styles.required}>*</span>}
+                    {required && <span className="text-primary ml-0.5">*</span>}
                 </label>
-                <span className={styles.value}>{value}</span>
+                <span className="text-lg text-primary font-mono">{value}</span>
             </div>
-            {description && <p className={styles.desc}>{description}</p>}
-            <div className={styles.numberGroup}>
+            {description && <p className="m-0 mb-2 text-md text-muted">{description}</p>}
+            <div className="flex items-center gap-3">
                 {showSlider && (
                     <input
                         type="range"
-                        className={styles.slider}
+                        className="flex-1 h-1 appearance-none bg-active rounded-sm cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-[image:var(--engram-gradient)] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
                         value={value}
                         onChange={(e) => onChange(parseFloat(e.target.value))}
                         min={min}
@@ -107,7 +106,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
                 )}
                 <input
                     type="number"
-                    className={`${styles.input} ${styles.numberInput} ${error ? styles.hasError : ''}`}
+                    className={`w-full px-3 py-2.5 bg-input border border-border-default rounded-md text-text-primary text-xl transition-all outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-10 w-[80px] text-center ${error ? '!border-error' : ''}`}
                     value={value}
                     onChange={(e) => {
                         const val = parseFloat(e.target.value);
@@ -121,7 +120,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
                     disabled={disabled}
                 />
             </div>
-            {error && <span className={styles.error}>{error}</span>}
+            {error && <span className="block mt-1 text-md text-error-light">{error}</span>}
         </div>
     );
 };
@@ -155,14 +154,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     disabled,
 }) => {
     return (
-        <div className={`${styles.field} ${className || ''}`}>
-            <label className={styles.label}>
+        <div className={`mb-4 ${className || ''}`}>
+            <label className="block mb-2 text-lg font-medium text-text-primary">
                 {label}
-                {required && <span className={styles.required}>*</span>}
+                {required && <span className="text-primary ml-0.5">*</span>}
             </label>
-            {description && <p className={styles.desc}>{description}</p>}
+            {description && <p className="m-0 mb-2 text-md text-muted">{description}</p>}
             <select
-                className={`${styles.select} ${error ? styles.hasError : ''}`}
+                className={`w-full px-3 py-2.5 bg-input border border-border-default rounded-md text-text-primary text-xl transition-all outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-10 ${error ? '!border-error' : ''}`}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 disabled={disabled}
@@ -178,7 +177,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     </option>
                 ))}
             </select>
-            {error && <span className={styles.error}>{error}</span>}
+            {error && <span className="block mt-1 text-md text-error-light">{error}</span>}
         </div>
     );
 };
@@ -200,20 +199,21 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
     disabled,
 }) => {
     return (
-        <div className={`${styles.field} ${styles.switchWrapper} ${className || ''}`}>
-            <div className={styles.switchContent}>
-                <label className={styles.label}>{label}</label>
-                {description && <p className={styles.desc}>{description}</p>}
+        <div className={`mb-4 flex items-center justify-between p-3 bg-surface rounded-lg ${className || ''}`}>
+            <div className="flex-1">
+                <label className="block text-lg font-medium text-text-primary mb-0">{label}</label>
+                {description && <p className="m-0 mt-1 text-md text-muted">{description}</p>}
             </div>
             <button
                 type="button"
-                className={`${styles.switch} ${checked ? styles.switchActive : ''}`}
+                className={`w-[44px] h-6 p-0.5 border-none rounded-full cursor-pointer transition-all ${checked ? 'bg-[image:var(--engram-gradient)]' : 'bg-active'
+                    }`}
                 onClick={() => !disabled && onChange(!checked)}
                 disabled={disabled}
                 role="switch"
                 aria-checked={checked}
             >
-                <span className={styles.switchToggle} />
+                <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${checked ? 'translate-x-[20px]' : ''}`} />
             </button>
         </div>
     );
@@ -239,22 +239,23 @@ export const FormSection: React.FC<FormSectionProps> = ({
     const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
     return (
-        <div className={`${styles.section} ${collapsed ? styles.collapsed : ''}`}>
+        <div className={`mb-5 p-4 bg-elevated rounded-xl ${collapsed ? '' : ''}`}>
             <div
-                className={`${styles.sectionHeader} ${collapsible ? styles.sectionHeaderClickable : ''}`}
+                className={`${collapsed ? 'mb-0' : 'mb-4'} ${collapsible ? 'cursor-pointer flex items-center justify-between' : ''
+                    }`}
                 onClick={() => collapsible && setCollapsed(!collapsed)}
             >
-                <div className={styles.sectionTitle}>
-                    <h4>{title}</h4>
-                    {description && <p>{description}</p>}
+                <div className="">
+                    <h4 className="m-0 text-xl font-semibold text-text-primary">{title}</h4>
+                    {description && <p className="mt-1 text-md text-muted">{description}</p>}
                 </div>
                 {collapsible && (
-                    <span className={styles.sectionArrow}>
+                    <span className="text-muted text-xs">
                         {collapsed ? '▶' : '▼'}
                     </span>
                 )}
             </div>
-            {!collapsed && <div className={styles.sectionBody}>{children}</div>}
+            {!collapsed && <div className="">{children}</div>}
         </div>
     );
 };

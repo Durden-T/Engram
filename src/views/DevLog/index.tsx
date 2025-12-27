@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Logger, LogEntry, LogLevel, LogLevelConfig } from '../../infrastructure/logger';
 import { LogEntryItem } from './LogEntryItem';
-import styles from './styles/index.module.css';
+
 
 // 模块列表（用于过滤）
 const MODULES = [
@@ -112,7 +112,7 @@ export const DevLog: React.FC = () => {
     }, []);
 
     return (
-        <div className={styles.container}>
+        <div className="flex flex-col h-full gap-3">
             {/* 页面标题 */}
             <div className="engram-page-header">
                 <Terminal size={24} />
@@ -120,7 +120,7 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 工具栏 */}
-            <div className={styles.toolbar}>
+            <div className="flex items-center gap-2 flex-wrap">
                 {/* 级别过滤 */}
                 <div className="engram-dropdown">
                     <button
@@ -193,7 +193,7 @@ export const DevLog: React.FC = () => {
                 </div>
 
                 {/* 右侧按钮组 */}
-                <div className={styles.toolbarRight}>
+                <div className="flex items-center gap-1 ml-auto">
                     {/* 自动滚动 */}
                     <button
                         className={`engram-btn engram-btn-ghost ${autoScroll ? 'active' : ''}`}
@@ -225,9 +225,9 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 终端区域 */}
-            <div className={styles.terminal} ref={terminalRef}>
+            <div className="flex-1 p-3 bg-[#1a1a2e] border border-border-default rounded-lg overflow-y-auto font-mono text-md leading-relaxed" ref={terminalRef}>
                 {filteredLogs.length === 0 ? (
-                    <div className={styles.terminalEmpty}>
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-disabled">
                         <Terminal size={48} strokeWidth={1} />
                         <p>暂无日志记录</p>
                     </div>
@@ -242,7 +242,7 @@ export const DevLog: React.FC = () => {
             </div>
 
             {/* 状态栏 */}
-            <div className={styles.statusbar}>
+            <div className="flex items-center gap-2 px-3 py-2 bg-elevated rounded-md text-md text-muted">
                 <span>共 {logs.length} 条日志</span>
                 {filteredLogs.length !== logs.length && (
                     <span>（显示 {filteredLogs.length} 条）</span>

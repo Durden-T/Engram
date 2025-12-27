@@ -4,7 +4,7 @@
 import React from 'react';
 import { TextField, SelectField, FormSection } from '../FormField';
 import type { VectorConfig, VectorSource } from '../../types';
-import styles from './styles.module.css';
+
 
 interface VectorConfigFormProps {
     config: VectorConfig;
@@ -59,7 +59,7 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
     const needsKey = NEEDS_API_KEY.includes(config.source);
 
     return (
-        <div className={styles.form}>
+        <div className="">
             <FormSection title="向量化设置" description="配置文本向量化使用的模型和端点">
                 <SelectField
                     label="向量源"

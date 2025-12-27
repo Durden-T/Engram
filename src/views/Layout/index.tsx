@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({
     onClose,
 }) => {
     return (
-        <div className={`engram-layout ${isFullscreen ? 'eg-fullscreen' : ''}`}>
+        <div className={`flex flex-col h-full w-full bg-[rgba(30,30,35,0.95)] text-slate-200 overflow-hidden ${isFullscreen ? 'fixed top-0 left-0 right-0 bottom-0 z-[10000]' : ''}`}>
             <Header
                 isFullscreen={isFullscreen}
                 onToggleFullscreen={onToggleFullscreen}
@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({
                 onNavigate={onNavigate}
             />
 
-            <div className="engram-body">
+            <div className="flex flex-1 min-h-0 overflow-hidden relative">
                 <Sidebar
                     currentPath={currentPath}
                     onNavigate={onNavigate}
@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({
                     isMobile={isMobile}
                 />
 
-                <main className="engram-content">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 min-w-0 min-h-0">
                     {children}
                 </main>
             </div>

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, NumberField, SelectField, SwitchField, FormSection } from '../FormField';
 import type { LLMPreset, APISource } from '../../types';
 import { RefreshCw } from 'lucide-react';
-import styles from './styles.module.css';
+
 
 interface LLMPresetFormProps {
     preset: LLMPreset;
@@ -133,7 +133,7 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
     const selectedProfile = tavernProfiles.find(p => p.id === preset.tavernProfileId);
 
     return (
-        <div className={styles.form}>
+        <div className="">
             {/* 基本信息 */}
             <FormSection title="基本信息">
                 <TextField
@@ -156,8 +156,9 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
             {/* 酒馆配置文件选择 */}
             {preset.source === 'tavern_profile' && (
                 <FormSection title="酒馆配置文件" description="选择一个已保存的酒馆连接配置">
-                    <div className={styles.profileSelectRow}>
+                    <div className="flex items-end gap-2">
                         <SelectField
+                            className="flex-1 !mb-0"
                             label="选择配置文件"
                             value={preset.tavernProfileId || ''}
                             onChange={(value) => updatePreset({ tavernProfileId: value })}
@@ -167,34 +168,34 @@ export const LLMPresetForm: React.FC<LLMPresetFormProps> = ({
                         />
                         <button
                             type="button"
-                            className={styles.refreshBtn}
+                            className="h-[42px] w-[42px] min-w-[42px] flex items-center justify-center border-none rounded-md bg-hover text-text-secondary cursor-pointer transition-all hover:bg-active hover:text-white"
                             onClick={loadTavernProfiles}
                             disabled={isLoadingProfiles}
                             title="刷新配置列表"
                         >
-                            <RefreshCw size={16} className={isLoadingProfiles ? styles.spinning : ''} />
+                            <RefreshCw size={16} className={isLoadingProfiles ? "animate-spin" : ''} />
                         </button>
                     </div>
 
                     {profileOptions.length === 0 && !isLoadingProfiles && (
-                        <div className={styles.emptyHint}>
+                        <div className="p-3 bg-primary-10 border border-dashed border-primary-30 rounded-lg text-primary text-lg text-center mt-3">
                             未找到酒馆配置文件。请在酒馆中创建连接配置后刷新。
                         </div>
                     )}
 
                     {selectedProfile && (
-                        <div className={styles.profilePreview}>
-                            <div className={styles.previewItem}>
-                                <span className={styles.previewLabel}>API:</span>
-                                <span className={styles.previewValue}>{selectedProfile.api || '-'}</span>
+                        <div className="mt-4 p-3 bg-surface rounded-lg border border-border-light">
+                            <div className="flex items-center gap-2 py-1 text-lg border-b border-border-light last:border-0">
+                                <span className="text-muted min-w-[60px]">API:</span>
+                                <span className="text-text-primary font-mono">{selectedProfile.api || '-'}</span>
                             </div>
-                            <div className={styles.previewItem}>
-                                <span className={styles.previewLabel}>模型:</span>
-                                <span className={styles.previewValue}>{selectedProfile.model || '-'}</span>
+                            <div className="flex items-center gap-2 py-1 text-lg border-b border-border-light last:border-0">
+                                <span className="text-muted min-w-[60px]">模型:</span>
+                                <span className="text-text-primary font-mono">{selectedProfile.model || '-'}</span>
                             </div>
-                            <div className={styles.previewItem}>
-                                <span className={styles.previewLabel}>预设:</span>
-                                <span className={styles.previewValue}>{selectedProfile.preset || '-'}</span>
+                            <div className="flex items-center gap-2 py-1 text-lg border-b border-border-light last:border-0">
+                                <span className="text-muted min-w-[60px]">预设:</span>
+                                <span className="text-text-primary font-mono">{selectedProfile.preset || '-'}</span>
                             </div>
                         </div>
                     )}

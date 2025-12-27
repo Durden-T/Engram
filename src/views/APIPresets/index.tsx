@@ -22,7 +22,6 @@ import {
     DEFAULT_VECTOR_CONFIG,
     DEFAULT_RERANK_CONFIG,
 } from './types';
-import styles from './styles.module.css';
 
 // 标签页类型
 type TabType = 'llm' | 'vector' | 'rerank';
@@ -145,7 +144,7 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
     // ==================== 渲染 ====================
 
     return (
-        <div className={styles.container}>
+        <div className="flex flex-col gap-4">
             {/* 页面头部 */}
             <div className="engram-page-header">
                 <Key size={24} />
@@ -173,14 +172,14 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
             </div>
 
             {/* 内容区域 */}
-            <div className={styles.content}>
+            <div className="flex-1">
                 {/* LLM 预设标签页 */}
                 {activeTab === 'llm' && (
-                    <div className={styles.llmTab}>
+                    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-4">
                         {/* 左侧：预设列表 */}
-                        <div className={styles.presetList}>
-                            <div className={styles.presetListHeader}>
-                                <h3>预设列表</h3>
+                        <div className="flex flex-col gap-3 max-md:max-h-[200px] max-md:overflow-y-auto">
+                            <div className="flex items-center justify-between">
+                                <h3 className="m-0 text-[14px] font-semibold text-primary">预设列表</h3>
                                 <button
                                     className="engram-btn engram-btn-ghost"
                                     onClick={handleAddPreset}
@@ -189,7 +188,7 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
                                     新建
                                 </button>
                             </div>
-                            <div className={styles.presetListItems}>
+                            <div className="flex flex-col gap-2">
                                 {settings.llmPresets.map((preset) => (
                                     <PresetCard
                                         key={preset.id}
@@ -212,14 +211,14 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
                         </div>
 
                         {/* 右侧：编辑表单 */}
-                        <div className={styles.presetEditor}>
+                        <div className="flex flex-col gap-4">
                             {editingPreset ? (
                                 <LLMPresetForm
                                     preset={editingPreset}
                                     onChange={handleUpdatePreset}
                                 />
                             ) : (
-                                <div className={styles.emptyState}>
+                                <div className="flex flex-col items-center justify-center p-10 text-muted gap-4">
                                     <Key size={48} />
                                     <p>选择或创建一个预设开始配置</p>
                                 </div>
@@ -230,7 +229,7 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
 
                 {/* 向量化标签页 */}
                 {activeTab === 'vector' && (
-                    <div className="engram-vector-tab">
+                    <div className="flex flex-col gap-4">
                         <VectorConfigForm
                             config={settings.vectorConfig}
                             onChange={handleVectorConfigChange}
@@ -240,7 +239,7 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
 
                 {/* Rerank 标签页 */}
                 {activeTab === 'rerank' && (
-                    <div className="engram-rerank-tab">
+                    <div className="flex flex-col gap-4">
                         <RerankConfigForm
                             config={settings.rerankConfig}
                             onChange={handleRerankConfigChange}
