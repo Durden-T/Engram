@@ -7,8 +7,6 @@ interface LayoutProps {
     children: React.ReactNode;
     currentPath: string;
     onNavigate: (path: string) => void;
-    isFullscreen: boolean;
-    onToggleFullscreen: () => void;
     isSidebarOpen: boolean;
     onToggleSidebar: () => void;
     onCloseSidebar: () => void;
@@ -20,8 +18,6 @@ const Layout: React.FC<LayoutProps> = ({
     children,
     currentPath,
     onNavigate,
-    isFullscreen,
-    onToggleFullscreen,
     isSidebarOpen,
     onToggleSidebar,
     onCloseSidebar,
@@ -29,10 +25,8 @@ const Layout: React.FC<LayoutProps> = ({
     onClose,
 }) => {
     return (
-        <div className={`flex flex-col h-full w-full bg-[rgba(30,30,35,0.95)] text-slate-200 overflow-hidden ${isFullscreen ? 'fixed top-0 left-0 right-0 bottom-0 z-[10000]' : ''}`}>
+        <div className="fixed inset-0 z-[10000] flex flex-col h-full w-full bg-background text-foreground overflow-hidden font-sans">
             <Header
-                isFullscreen={isFullscreen}
-                onToggleFullscreen={onToggleFullscreen}
                 onToggleSidebar={onToggleSidebar}
                 isMobile={isMobile}
                 onClose={onClose}

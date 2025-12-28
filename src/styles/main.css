@@ -1,23 +1,53 @@
 /* Engram 主样式入口 */
 
-/* Design Token 系统 */
+/* Design Token 系统 - 暂时保留，以防万一，但主要依赖 ThemeContext */
 @import './variables.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal Reset (Preflight disabled replacement) */
-*,
-::before,
-::after {
-    box-sizing: border-box;
-    border-width: 0;
-    border-style: solid;
-    border-color: #e5e7eb;
-    /* Default tailwind border color */
+/* Minimal Reset */
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }
 
+/* Scoped Preflight / Reset for Engram container to isolate from ST global styles */
+/* 使用 :where() 将优先级降到 0，让 Tailwind 工具类能正常覆盖 */
+:where(#engram-panel-root) button {
+    /* Reset ST global button styles */
+    background-color: transparent;
+    background-image: none;
+    border-width: 0;
+    border-style: solid;
+    border-color: transparent;
+    box-shadow: none;
+    color: inherit;
+    font-family: inherit;
+    padding: 0;
+    margin: 0;
+    text-shadow: none;
+    border-radius: 0;
+    cursor: pointer;
+    line-height: inherit;
+    text-transform: none;
+    transform: none;
+}
+
+/* Reset specific ST inputs if they leak */
+:where(#engram-panel-root) input[type="text"],
+:where(#engram-panel-root) textarea {
+    background-color: transparent;
+    color: inherit;
+    border: none;
+    box-shadow: none;
+}
 
 /* Animations for Dashboard - Keeping these as they are used by utility classes or inline styles */
 @keyframes orb-breathe {
@@ -58,289 +88,48 @@
 
 /* Engram 顶栏 SVG 图标样式（继承 ST drawer-icon 样式） */
 #engram-drawer .drawer-icon svg {
-    /* 放大 1.5 倍 */
     width: 1.2em;
     height: 1.2em;
-    /* 向上偏移对齐其他图标 */
     position: relative;
-    top: 1.5px;
+    top: 1px;
     display: inline-block;
 }
 
-/* ========== Shared Components (Moved from components.css) ========== */
-@layer components {
-
-    /* 按钮系统 */
-    .engram-btn {
-        @apply inline-flex items-center gap-1.5 px-3 py-1.5 border-none rounded-md text-lg cursor-pointer transition-all duration-200;
-    }
-
-    .engram-btn-ghost {
-        @apply bg-bg-hover text-text-secondary;
-    }
-
-    .engram-btn-ghost:hover {
-        @apply bg-bg-active text-white;
-    }
-
-    .engram-btn-ghost.active {
-        @apply bg-primary-20 text-primary;
-    }
-
-    .engram-btn-primary {
-        background: var(--engram-gradient);
-        @apply text-white;
-    }
-
-    .engram-btn-primary:hover {
-        filter: brightness(1.1);
-    }
-
-    /* 下拉菜单 */
-    .engram-dropdown {
-        @apply relative;
-    }
-
-    .engram-dropdown-menu {
-        @apply absolute top-full left-0 min-w-[140px] p-1 bg-[#1e1e28fa] border border-border rounded-lg shadow-md z-[100];
-    }
-
-    .engram-dropdown-menu button {
-        @apply flex items-center gap-2 w-full px-3 py-2 border-none rounded-sm bg-transparent text-text-primary text-lg text-left cursor-pointer hover:bg-bg-active;
-    }
-
-    /* 搜索框 */
-    .engram-search-box {
-        @apply flex items-center gap-2 px-3 py-1.5 bg-bg-hover border border-border rounded-md flex-1 max-w-[300px];
-    }
-
-    .engram-search-box input {
-        @apply flex-1 border-none bg-transparent text-text-primary text-lg outline-none placeholder:text-text-muted;
-    }
-
-    .engram-search-box svg {
-        @apply text-text-muted shrink-0;
-    }
-
-    /* 标签页 */
-    .engram-tabs {
-        @apply flex gap-2 flex-wrap;
-    }
-
-    .engram-tab {
-        @apply inline-flex items-center gap-2 px-3 py-2 border-none rounded-md bg-transparent text-text-secondary text-xl cursor-pointer transition-all duration-200 hover:bg-bg-hover;
-    }
-
-    .engram-tab.active {
-        @apply bg-primary-20 text-primary;
-    }
-
-    /* 页面头部 */
-    .engram-page-header {
-        @apply flex items-center gap-3 pb-4 mb-4 border-b border-border-light;
-    }
-
-    .engram-page-header h2 {
-        @apply m-0 text-2xl font-semibold text-text-primary;
-    }
-
-    .engram-page-header .engram-btn {
-        @apply ml-auto;
-    }
-
-    /* 图标按钮 */
-    .engram-icon-btn {
-        @apply inline-flex items-center justify-center w-8 h-8 border-none rounded-md bg-transparent text-text-secondary cursor-pointer transition-all duration-200 hover:bg-bg-active hover:text-white;
-    }
-
-    .engram-close-btn:hover {
-        @apply bg-red-500/20 text-red-500;
-    }
-
-    /* 卡片容器 */
-    .engram-card {
-        @apply bg-bg-surface backdrop-blur-md border border-border-light rounded-lg shadow-sm transition-all duration-200 hover:bg-bg-hover hover:border-border hover:shadow-md;
-    }
+/* Scrollbar styling for Webkit */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-/* ========== Remaining Global Styles (Header, Sidebar, CommandPalette) ========== */
-/* Kept here until they are migrated to pure Tailwind components */
-
-/* Header 头部 */
-.engram-header {
-    @apply flex items-center justify-between h-12 px-3 border-b border-border-light bg-black/20;
+::-webkit-scrollbar-track {
+    @apply bg-background;
 }
 
-.engram-header-left,
-.engram-header-right {
-    @apply flex items-center gap-2;
+::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
 }
 
-.engram-logo-text {
-    @apply text-lg font-semibold bg-gradient-to-br from-orange-500 to-pink-500 bg-clip-text text-transparent;
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground opacity-50;
 }
 
-/* Sidebar 侧边栏 */
-.engram-sidebar {
-    @apply flex flex-col w-12 min-w-[48px] bg-[#1e1e23e6] border-r border-slate-400/10 overflow-y-auto overflow-x-hidden z-50;
+/* Explicit Utility Classes for Sidebar (Safeguard against Tailwind generation issues) */
+.bg-sidebar {
+    background-color: var(--sidebar) !important;
 }
 
-.engram-sidebar-overlay {
-    @apply fixed inset-0 bg-black/50 z-[99];
+.text-sidebar-foreground {
+    color: var(--sidebar-foreground) !important;
 }
 
-.engram-sidebar-header {
-    @apply flex items-center justify-between p-3 border-b border-border-light;
+.bg-sidebar-accent {
+    background-color: var(--sidebar-accent) !important;
 }
 
-.engram-nav-list {
-    @apply list-none m-0 py-2 px-0;
+.text-sidebar-accent-foreground {
+    color: var(--sidebar-accent-foreground) !important;
 }
 
-.engram-nav-item {
-    @apply my-0.5 mx-0;
-}
-
-.engram-nav-btn {
-    @apply flex items-center justify-center w-full h-10 p-0 border-none bg-transparent text-text-muted cursor-pointer transition-all duration-200 hover:bg-white/5 hover:text-white;
-}
-
-.engram-nav-btn.active {
-    @apply bg-orange-500/15 text-orange-500;
-}
-
-/* Mobile Sidebar */
-@media (max-width: 767px) {
-    .engram-sidebar {
-        @apply fixed top-0 left-0 bottom-0 w-60 z-[100] -translate-x-full transition-transform;
-    }
-
-    .engram-sidebar.open {
-        @apply translate-x-0;
-    }
-}
-
-/* SearchBar 搜索栏 */
-.engram-searchbar {
-    @apply p-2 sm:px-3 border-t border-border-light bg-black/20;
-}
-
-.engram-search-form {
-    @apply flex items-center gap-2 p-2 sm:px-3 bg-white/5 border border-border-light rounded-lg;
-}
-
-.engram-search-icon {
-    @apply text-slate-500 shrink-0;
-}
-
-.engram-search-input {
-    @apply flex-1 border-none bg-transparent text-slate-200 text-sm outline-none placeholder:text-slate-500;
-}
-
-/* Command Palette */
-.engram-header-center {
-    @apply flex-1 flex justify-center px-4 max-w-[600px];
-}
-
-.engram-command-palette {
-    @apply relative w-full max-w-[480px];
-}
-
-.engram-cp-input-wrapper {
-    @apply flex items-center gap-2 w-full h-9 px-3 bg-black/20 border border-slate-400/10 rounded-lg transition-all duration-200;
-}
-
-.engram-cp-input-wrapper.active {
-    @apply bg-black/40 border-orange-500/50;
-    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
-}
-
-.engram-cp-icon {
-    @apply text-slate-500 shrink-0;
-}
-
-.engram-cp-input {
-    @apply flex-1 h-full bg-transparent border-none text-slate-200 text-sm outline-none placeholder:text-slate-500;
-}
-
-.engram-cp-shortcut {
-    @apply flex items-center gap-1 px-1.5 py-0.5 bg-white/10 rounded text-slate-500 text-[11px] font-mono pointer-events-none;
-}
-
-.engram-cp-dropdown {
-    @apply absolute top-[calc(100%+8px)] left-0 right-0 bg-[#1e1e23f2] backdrop-blur-xl border border-slate-400/20 rounded-xl z-[1000] overflow-hidden p-2 animate-[fadeIn_0.1s_ease-out];
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.engram-cp-group {
-    @apply mb-2;
-}
-
-.engram-cp-group:last-child {
-    @apply mb-0;
-}
-
-.engram-cp-label {
-    @apply px-2 py-1 text-[11px] text-slate-500 font-semibold uppercase tracking-wider;
-}
-
-.engram-cp-item {
-    @apply flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-100;
-}
-
-.engram-cp-item:hover,
-.engram-cp-item.selected {
-    @apply bg-orange-500/15;
-}
-
-.engram-cp-item-icon {
-    @apply text-slate-400 shrink-0;
-}
-
-.engram-cp-item.selected .engram-cp-item-icon {
-    @apply text-orange-500;
-}
-
-.engram-cp-item-content {
-    @apply flex-1 min-w-0;
-}
-
-.engram-cp-item-title {
-    @apply text-slate-200 text-sm font-medium;
-}
-
-.engram-cp-item.selected .engram-cp-item-title {
-    @apply text-white;
-}
-
-.engram-cp-item-desc {
-    @apply text-slate-500 text-xs mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis;
-}
-
-.engram-cp-item.selected .engram-cp-item-desc {
-    @apply text-white/70;
-}
-
-.engram-cp-enter {
-    @apply text-slate-500 opacity-50;
-}
-
-.engram-cp-item.selected .engram-cp-enter {
-    @apply text-orange-500 opacity-100;
-}
-
-.engram-cp-empty {
-    @apply p-6 text-center text-slate-500 text-[13px] rounded-lg bg-white/[0.02];
+.border-sidebar-border {
+    border-color: var(--sidebar-border) !important;
 }

@@ -1,6 +1,7 @@
 // 设置页面视图
 import React from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
+import { ThemeSelector } from './components/ThemeSelector';
 
 export const Settings: React.FC = () => {
     return (
@@ -10,8 +11,11 @@ export const Settings: React.FC = () => {
                 <h2>设置</h2>
             </div>
             <div className="engram-page-content">
-                <p className="engram-placeholder">设置选项将在这里展示...</p>
-                {/* TODO: 设置选项 */}
+                <div className="space-y-6">
+                    <section className="bg-card rounded-lg p-6 border border-border shadow-sm">
+                        <ThemeSelector />
+                    </section>
+                </div>
             </div>
         </div>
     );

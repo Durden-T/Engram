@@ -12,7 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
     { id: 'dashboard', icon: LayoutDashboard, label: '仪表盘', path: '/dashboard' },
     { id: 'memory', icon: List, label: '记忆流', path: '/memory' },
     { id: 'graph', icon: Network, label: '世界图谱', path: '/graph' },
-    { id: 'brain', icon: Brain, label: '记忆', path: '/brain' },
+    { id: 'processing', icon: Brain, label: '处理', path: '/processing' },
     { id: 'api', icon: Key, label: 'API 预设', path: '/api' },
     { id: 'dev', icon: Terminal, label: '开发日志', path: '/dev' },
     { id: 'settings', icon: Settings, label: '设置', path: '/settings' },

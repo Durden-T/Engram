@@ -4,61 +4,79 @@ export default {
     theme: {
         extend: {
             colors: {
+                // Semantic Theme Colors - Simplified to direct CSS variables
+                border: "var(--border)",
+                input: "var(--input)",
+                ring: {
+                    DEFAULT: "var(--ring)",
+                    50: "color-mix(in srgb, var(--ring) 50%, transparent)",
+                },
+                // background handled in object below
+                foreground: "var(--foreground)",
                 primary: {
-                    DEFAULT: "var(--engram-primary)",
-                    hover: "var(--engram-primary-hover)", // Assuming hover var exists or using opacity
-                    10: "var(--engram-primary-10)",
-                    20: "var(--engram-primary-20)",
-                    30: "var(--engram-primary-30)",
-                    50: "var(--engram-primary-50)",
+                    DEFAULT: "var(--primary)",
+                    foreground: "var(--primary-foreground)",
+                    5: "color-mix(in srgb, var(--primary) 5%, transparent)",
+                    10: "color-mix(in srgb, var(--primary) 10%, transparent)",
+                    20: "color-mix(in srgb, var(--primary) 20%, transparent)",
+                    30: "color-mix(in srgb, var(--primary) 30%, transparent)",
+                    50: "color-mix(in srgb, var(--primary) 50%, transparent)", // Used for borders
+                    90: "color-mix(in srgb, var(--primary) 90%, transparent)",
                 },
-                secondary: "var(--engram-secondary)",
-                bg: {
-                    base: "var(--engram-bg-base)",
-                    elevated: "var(--engram-bg-elevated)",
-                    surface: "var(--engram-bg-surface)",
-                    hover: "var(--engram-bg-hover)",
-                    active: "var(--engram-bg-active)",
-                    terminal: "var(--engram-bg-terminal)",
+                secondary: {
+                    DEFAULT: "var(--secondary)",
+                    foreground: "var(--secondary-foreground)",
+                    80: "color-mix(in srgb, var(--secondary) 80%, transparent)",
                 },
-                text: {
-                    primary: "var(--engram-text-primary)",
-                    secondary: "var(--engram-text-secondary)",
-                    muted: "var(--engram-text-muted)",
-                    disabled: "var(--engram-text-disabled)",
+                destructive: {
+                    DEFAULT: "var(--destructive)",
+                    foreground: "var(--destructive-foreground)",
                 },
-                border: {
-                    DEFAULT: "var(--engram-border-default)",
-                    light: "var(--engram-border-light)",
-                    focus: "var(--engram-border-focus)",
+                muted: {
+                    DEFAULT: "var(--muted)",
+                    foreground: "var(--muted-foreground)",
+                    20: "color-mix(in srgb, var(--muted) 20%, transparent)",
+                    30: "color-mix(in srgb, var(--muted) 30%, transparent)",
+                    50: "color-mix(in srgb, var(--muted) 50%, transparent)",
                 },
+                accent: {
+                    DEFAULT: "var(--accent)",
+                    foreground: "var(--accent-foreground)",
+                    10: "color-mix(in srgb, var(--accent) 10%, transparent)", // Just in case
+                },
+                popover: {
+                    DEFAULT: "var(--popover)",
+                    foreground: "var(--popover-foreground)",
+                    95: "color-mix(in srgb, var(--popover) 95%, transparent)",
+                },
+                card: {
+                    DEFAULT: "var(--card)",
+                    foreground: "var(--card-foreground)",
+                },
+                background: {
+                    DEFAULT: "var(--background)",
+                    80: "color-mix(in srgb, var(--background) 80%, transparent)",
+                },
+                sidebar: {
+                    DEFAULT: 'var(--sidebar)',
+                    foreground: 'var(--sidebar-foreground)',
+                    primary: 'var(--sidebar-primary)',
+                    'primary-foreground': 'var(--sidebar-primary-foreground)',
+                    accent: 'var(--sidebar-accent)',
+                    'accent-foreground': 'var(--sidebar-accent-foreground)',
+                    border: 'var(--sidebar-border)',
+                    ring: 'var(--sidebar-ring)',
+                },
+                // 状态色
                 success: "var(--engram-success)",
                 warning: "var(--engram-warning)",
                 error: "var(--engram-error)",
             },
             borderRadius: {
-                sm: "var(--engram-radius-sm)",
-                md: "var(--engram-radius-md)",
-                lg: "var(--engram-radius-lg)",
-                xl: "var(--engram-radius-xl)",
+                lg: "var(--radius)",
+                md: "calc(var(--radius) - 2px)",
+                sm: "calc(var(--radius) - 4px)",
             },
-            spacing: {
-                1: "var(--engram-space-1)",
-                2: "var(--engram-space-2)",
-                3: "var(--engram-space-3)",
-                4: "var(--engram-space-4)",
-                5: "var(--engram-space-5)",
-                6: "var(--engram-space-6)",
-            },
-            fontFamily: {
-                mono: "var(--engram-font-mono)",
-            },
-            boxShadow: {
-                sm: "var(--engram-shadow-sm)",
-                md: "var(--engram-shadow-md)",
-                lg: "var(--engram-shadow-lg)",
-                glow: "var(--engram-shadow-glow)",
-            }
         },
     },
     plugins: [],

@@ -82,11 +82,37 @@ export async function initializeEngram(): Promise<void> {
 
     Logger.info('STBridge', 'Engram 插件正在初始化...');
 
+    // 检查酒馆接口对接状态
+    try {
+        const { checkTavernIntegration } = await import('../tavern');
+        const tavernStatus = await checkTavernIntegration();
+        Logger.info('TavernAPI', '酒馆接口对接状态', tavernStatus);
+    } catch (e) {
+        Logger.warn('TavernAPI', '酒馆接口检查失败', { error: String(e) });
+    }
+
+    // 启动 Summarizer 服务
+    try {
+        const { summarizerService } = await import('../../core/summarizer');
+        summarizerService.start();
+        const status = summarizerService.getStatus();
+        Logger.info('Summarizer', '服务已启动', status);
+    } catch (e) {
+        Logger.warn('Summarizer', '服务启动失败', { error: String(e) });
+    }
+
     // 优先使用顶栏按钮，找不到则使用悬浮球
     createTopBarButton();
 
     // 监听 ST 事件
     setupEventListeners();
+
+    // 初始化主题系统 (注入 CSS 并应用变量)
+    const { ThemeManager } = await import('../ThemeManager');
+    ThemeManager.init();
+
+    // 运行诊断
+    import('../diagnose').then(({ runDiagnostics }) => runDiagnostics());
 
     Logger.success('STBridge', 'Engram 初始化完成 - Where memories leave their trace.');
 }
@@ -195,8 +221,13 @@ function toggleMainPanel(): void {
  */
 function createMainPanel(): HTMLElement {
     const panel = document.createElement('div');
-    // 使用 Tailwind 类
-    panel.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[1200px] h-[70vh] rounded-2xl overflow-hidden z-[10000] flex flex-col bg-[#1e1e2d]/95 backdrop-blur-xl border border-slate-400/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)]';
+    // 使用 Tailwind 类 - 全屏模式
+    // z-[10000] 确保在最顶层，bg-background 确保有背景色
+    panel.className = 'fixed inset-0 w-full h-full z-[10000] flex flex-col bg-background text-foreground overflow-hidden';
+    // 强制内联样式，确保颜色生效 (解决 Tailwind 类在某些环境下失效的问题)
+    panel.style.backgroundColor = 'var(--background)';
+    panel.style.color = 'var(--foreground)';
+
     panel.id = 'engram-panel-root';
 
     // 使用注入的渲染器

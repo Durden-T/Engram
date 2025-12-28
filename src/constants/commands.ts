@@ -39,7 +39,7 @@ export const COMMANDS: CommandItem[] = [
         icon: Brain,
         label: '前往大脑控制台',
         description: '记忆操作、总结与向量化',
-        action: (nav) => nav('/brain'),
+        action: (nav) => nav('/processing'),
         keywords: ['brain', 'console', 'summarize', '大脑'],
         type: 'navigation',
     },

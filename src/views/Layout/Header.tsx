@@ -1,11 +1,9 @@
 // 头部组件
 import React from 'react';
-import { Maximize2, Minimize2, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { CommandPalette } from './CommandPalette';
 
 interface HeaderProps {
-    isFullscreen: boolean;
-    onToggleFullscreen: () => void;
     onToggleSidebar: () => void;
     isMobile: boolean;
     onClose?: () => void;
@@ -13,44 +11,36 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-    isFullscreen,
-    onToggleFullscreen,
     onToggleSidebar,
     isMobile,
     onClose,
     onNavigate,
 }) => {
     return (
-        <header className="engram-header">
-            <div className="engram-header-left">
+        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-sidebar text-sidebar-foreground z-50 transition-colors duration-300">
+            <div className="flex items-center gap-3">
                 {isMobile && (
                     <button
-                        className="engram-icon-btn"
+                        className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={onToggleSidebar}
                         title="菜单"
                     >
                         <Menu size={20} />
                     </button>
                 )}
-                <span className="engram-logo-text">Engram</span>
+                <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    Engram
+                </span>
             </div>
 
             {/* Command Palette (居中) */}
-            <div className="engram-header-center">
+            <div className="flex-1 max-w-xl mx-4 flex justify-center">
                 <CommandPalette onNavigate={onNavigate} />
             </div>
 
-            <div className="engram-header-right">
+            <div className="flex items-center gap-2">
                 <button
-                    className="engram-icon-btn"
-                    onClick={onToggleFullscreen}
-                    title={isFullscreen ? '退出全屏' : '全屏'}
-                >
-                    {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                </button>
-
-                <button
-                    className="engram-icon-btn engram-close-btn"
+                    className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
                     onClick={onClose}
                     title="关闭"
                 >

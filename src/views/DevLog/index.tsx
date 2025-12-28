@@ -1,7 +1,9 @@
 /**
  * DevLog - 开发日志视图
  *
- * 终端风格的日志查看器，支持过滤、搜索、清空和导出
+ * 包含两个 Tab：
+ * 1. 运行日志 - 终端风格的日志查看器
+ * 2. 模型日志 - 伪聊天式 LLM 调用记录
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -12,16 +14,27 @@ import {
     Search,
     Filter,
     ArrowDownToLine,
+    Zap,
 } from 'lucide-react';
 import { Logger, LogEntry, LogLevel, LogLevelConfig } from '../../infrastructure/logger';
 import { LogEntryItem } from './LogEntryItem';
+import { ModelLog } from './ModelLog';
 
+// Tab 类型
+type TabType = 'runtime' | 'model';
+
+// Tab 配置
+const TABS: { id: TabType; label: string; icon: React.ElementType }[] = [
+    { id: 'runtime', label: '运行日志', icon: Terminal },
+    { id: 'model', label: '模型日志', icon: Zap },
+];
 
 // 模块列表（用于过滤）
 const MODULES = [
     'ALL',
     'Logger',
     'EventBus',
+    'Summarizer',
     'CORE/Pipeline',
     'CORE/RAG',
     'CORE/Memory',
@@ -30,6 +43,7 @@ const MODULES = [
 ];
 
 export const DevLog: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<TabType>('runtime');
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -85,7 +99,7 @@ export const DevLog: React.FC = () => {
     // 自动滚动到底部
     useEffect(() => {
         if (autoScroll && bottomRef.current) {
-            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+            bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }, [filteredLogs, autoScroll]);
 
@@ -113,141 +127,172 @@ export const DevLog: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full gap-3">
-            {/* 页面标题 */}
-            <div className="engram-page-header">
-                <Terminal size={24} />
-                <h2>开发日志</h2>
+            {/* 页面标题 + Tab 切换 */}
+            <div className="flex items-center gap-4 shrink-0">
+                <div className="engram-page-header">
+                    <Terminal size={24} />
+                    <h2>开发日志</h2>
+                </div>
+
+                {/* Tab 切换 */}
+                <div className="flex gap-1 ml-4">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.id}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${activeTab === tab.id
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                }`}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            <tab.icon size={14} />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* 工具栏 */}
-            <div className="flex items-center gap-2 flex-wrap">
-                {/* 级别过滤 */}
-                <div className="engram-dropdown">
-                    <button
-                        className="engram-btn engram-btn-ghost"
-                        onClick={() => setShowLevelDropdown(!showLevelDropdown)}
-                    >
-                        <Filter size={14} />
-                        {levelFilter === -1 ? '全部级别' : LogLevelConfig[levelFilter].label}
-                    </button>
-                    {showLevelDropdown && (
-                        <div className="engram-dropdown-menu">
+            {/* ========== 运行日志 Tab ========== */}
+            {activeTab === 'runtime' && (
+                <>
+                    {/* 工具栏 */}
+                    <div className="flex items-center gap-2 flex-wrap shrink-0">
+                        {/* 级别过滤 */}
+                        <div className="engram-dropdown">
                             <button
-                                onClick={() => {
-                                    setLevelFilter(-1);
-                                    setShowLevelDropdown(false);
-                                }}
+                                className="engram-btn engram-btn-ghost"
+                                onClick={() => setShowLevelDropdown(!showLevelDropdown)}
                             >
-                                全部级别
+                                <Filter size={14} />
+                                {levelFilter === -1 ? '全部级别' : LogLevelConfig[levelFilter].label}
                             </button>
-                            {Object.entries(LogLevelConfig).map(([level, config]) => (
-                                <button
-                                    key={level}
-                                    onClick={() => {
-                                        setLevelFilter(Number(level) as LogLevel);
-                                        setShowLevelDropdown(false);
-                                    }}
-                                >
-                                    {config.icon} {config.label}
-                                </button>
-                            ))}
+                            {showLevelDropdown && (
+                                <div className="engram-dropdown-menu">
+                                    <button
+                                        onClick={() => {
+                                            setLevelFilter(-1);
+                                            setShowLevelDropdown(false);
+                                        }}
+                                    >
+                                        全部级别
+                                    </button>
+                                    {Object.entries(LogLevelConfig).map(([level, config]) => (
+                                        <button
+                                            key={level}
+                                            onClick={() => {
+                                                setLevelFilter(Number(level) as LogLevel);
+                                                setShowLevelDropdown(false);
+                                            }}
+                                        >
+                                            {config.icon} {config.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                {/* 模块过滤 */}
-                <div className="engram-dropdown">
-                    <button
-                        className="engram-btn engram-btn-ghost"
-                        onClick={() => setShowModuleDropdown(!showModuleDropdown)}
-                    >
-                        <Filter size={14} />
-                        {moduleFilter}
-                    </button>
-                    {showModuleDropdown && (
-                        <div className="engram-dropdown-menu">
-                            {MODULES.map((mod) => (
-                                <button
-                                    key={mod}
-                                    onClick={() => {
-                                        setModuleFilter(mod);
-                                        setShowModuleDropdown(false);
-                                    }}
-                                >
-                                    {mod}
-                                </button>
-                            ))}
+                        {/* 模块过滤 */}
+                        <div className="engram-dropdown">
+                            <button
+                                className="engram-btn engram-btn-ghost"
+                                onClick={() => setShowModuleDropdown(!showModuleDropdown)}
+                            >
+                                <Filter size={14} />
+                                {moduleFilter}
+                            </button>
+                            {showModuleDropdown && (
+                                <div className="engram-dropdown-menu">
+                                    {MODULES.map((mod) => (
+                                        <button
+                                            key={mod}
+                                            onClick={() => {
+                                                setModuleFilter(mod);
+                                                setShowModuleDropdown(false);
+                                            }}
+                                        >
+                                            {mod}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                {/* 搜索框 */}
-                <div className="engram-search-box">
-                    <Search size={14} />
-                    <input
-                        type="text"
-                        placeholder="搜索日志..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
+                        {/* 搜索框 */}
+                        <div className="engram-search-box">
+                            <Search size={14} />
+                            <input
+                                type="text"
+                                placeholder="搜索日志..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
 
-                {/* 右侧按钮组 */}
-                <div className="flex items-center gap-1 ml-auto">
-                    {/* 自动滚动 */}
-                    <button
-                        className={`engram-btn engram-btn-ghost ${autoScroll ? 'active' : ''}`}
-                        onClick={() => setAutoScroll(!autoScroll)}
-                        title="自动滚动到最新"
-                    >
-                        <ArrowDownToLine size={14} />
-                    </button>
+                        {/* 右侧按钮组 */}
+                        <div className="flex items-center gap-1 ml-auto">
+                            {/* 自动滚动 */}
+                            <button
+                                className={`engram-btn engram-btn-ghost ${autoScroll ? 'active' : ''}`}
+                                onClick={() => setAutoScroll(!autoScroll)}
+                                title="自动滚动到最新"
+                            >
+                                <ArrowDownToLine size={14} />
+                            </button>
 
-                    {/* 清空 */}
-                    <button
-                        className="engram-btn engram-btn-ghost"
-                        onClick={handleClear}
-                        title="清空日志"
-                    >
-                        <Trash2 size={14} />
-                    </button>
+                            {/* 清空 */}
+                            <button
+                                className="engram-btn engram-btn-ghost"
+                                onClick={handleClear}
+                                title="清空日志"
+                            >
+                                <Trash2 size={14} />
+                            </button>
 
-                    {/* 导出 */}
-                    <button
-                        className="engram-btn engram-btn-primary"
-                        onClick={handleExport}
-                        title="导出日志"
-                    >
-                        <Download size={14} />
-                        导出
-                    </button>
-                </div>
-            </div>
-
-            {/* 终端区域 */}
-            <div className="flex-1 p-3 bg-[#1a1a2e] border border-border-default rounded-lg overflow-y-auto font-mono text-md leading-relaxed" ref={terminalRef}>
-                {filteredLogs.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 text-disabled">
-                        <Terminal size={48} strokeWidth={1} />
-                        <p>暂无日志记录</p>
+                            {/* 导出 */}
+                            <button
+                                className="engram-btn engram-btn-primary"
+                                onClick={handleExport}
+                                title="导出日志"
+                            >
+                                <Download size={14} />
+                                导出
+                            </button>
+                        </div>
                     </div>
-                ) : (
-                    <>
-                        {filteredLogs.map((entry) => (
-                            <LogEntryItem key={entry.id} entry={entry} />
-                        ))}
-                        <div ref={bottomRef} />
-                    </>
-                )}
-            </div>
 
-            {/* 状态栏 */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-elevated rounded-md text-md text-muted">
-                <span>共 {logs.length} 条日志</span>
-                {filteredLogs.length !== logs.length && (
-                    <span>（显示 {filteredLogs.length} 条）</span>
-                )}
-            </div>
+                    {/* 终端区域 */}
+                    <div className="flex-1 p-3 bg-[#1a1a2e] border border-border-default rounded-lg overflow-y-auto font-mono text-md leading-relaxed" ref={terminalRef}>
+                        {filteredLogs.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full gap-3 text-disabled">
+                                <Terminal size={48} strokeWidth={1} />
+                                <p>暂无日志记录</p>
+                            </div>
+                        ) : (
+                            <>
+                                {filteredLogs.map((entry) => (
+                                    <LogEntryItem key={entry.id} entry={entry} />
+                                ))}
+                                <div ref={bottomRef} />
+                            </>
+                        )}
+                    </div>
+
+                    {/* 状态栏 */}
+                    <div className="flex items-center gap-2 px-3 py-2 bg-elevated rounded-md text-md text-muted shrink-0">
+                        <span>共 {logs.length} 条日志</span>
+                        {filteredLogs.length !== logs.length && (
+                            <span>（显示 {filteredLogs.length} 条）</span>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* ========== 模型日志 Tab ========== */}
+            {activeTab === 'model' && (
+                <div className="flex-1 overflow-hidden">
+                    <ModelLog />
+                </div>
+            )}
         </div>
     );
 };

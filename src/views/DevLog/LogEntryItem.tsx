@@ -22,11 +22,11 @@ function formatTime(timestamp: number): string {
 
 // 级别样式映射
 const LEVEL_STYLES: Record<LogLevel, string> = {
-    [LogLevel.DEBUG]: 'text-[#6c757d]',
-    [LogLevel.INFO]: 'text-[#17a2b8]',
-    [LogLevel.SUCCESS]: 'text-[#28a745]',
-    [LogLevel.WARN]: 'text-[#ffc107]',
-    [LogLevel.ERROR]: 'text-[#dc3545]',
+    [LogLevel.DEBUG]: 'text-muted-foreground',
+    [LogLevel.INFO]: 'text-blue-400',
+    [LogLevel.SUCCESS]: 'text-green-400',
+    [LogLevel.WARN]: 'text-yellow-400',
+    [LogLevel.ERROR]: 'text-red-400',
 };
 
 export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry }) => {
@@ -38,11 +38,11 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry }) => {
     return (
         <div className="mb-0.5">
             <div
-                className={`flex items-start gap-2 px-1 py-0.5 rounded-sm transition-colors hover:bg-hover ${hasData ? 'cursor-pointer' : ''}`}
+                className={`flex items-start gap-2 px-1 py-0.5 rounded-sm transition-colors hover:bg-muted-50 ${hasData ? 'cursor-pointer' : ''}`}
                 onClick={() => hasData && setExpanded(!expanded)}
             >
                 {/* 展开箭头 */}
-                <span className="flex items-center text-muted shrink-0">
+                <span className="flex items-center text-muted-foreground shrink-0">
                     {hasData ? (
                         expanded ? (
                             <ChevronDown size={12} />
@@ -55,10 +55,10 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry }) => {
                 </span>
 
                 {/* 时间戳 */}
-                <span className="text-muted shrink-0">[{formatTime(entry.timestamp)}]</span>
+                <span className="text-muted-foreground shrink-0">[{formatTime(entry.timestamp)}]</span>
 
                 {/* 模块标签 */}
-                <span className="text-[#8b5cf6] shrink-0 whitespace-pre">[{entry.module.padEnd(16)}]</span>
+                <span className="text-purple-400 shrink-0 whitespace-pre">[{entry.module.padEnd(16)}]</span>
 
                 {/* 级别图标和标签 */}
                 <span className={`shrink-0 whitespace-pre ${levelClass}`}>
@@ -66,13 +66,13 @@ export const LogEntryItem: React.FC<LogEntryItemProps> = ({ entry }) => {
                 </span>
 
                 {/* 消息内容 */}
-                <span className="text-text-primary break-words">{entry.message}</span>
+                <span className="text-foreground break-words">{entry.message}</span>
             </div>
 
             {/* 展开的数据详情 */}
             {expanded && hasData && (
-                <div className="ml-8 px-3 py-2 bg-black/30 border-l-2 border-disabled rounded-r-sm">
-                    <pre className="m-0 text-text-secondary text-sm whitespace-pre-wrap break-words">{JSON.stringify(entry.data, null, 2)}</pre>
+                <div className="ml-8 px-3 py-2 bg-muted-30 border-l-2 border-border rounded-r-sm">
+                    <pre className="m-0 text-muted-foreground text-sm whitespace-pre-wrap break-words">{JSON.stringify(entry.data, null, 2)}</pre>
                 </div>
             )}
         </div>

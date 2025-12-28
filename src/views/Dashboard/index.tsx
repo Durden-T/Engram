@@ -84,25 +84,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* 3. Quick Actions (快捷入口) - 下方 */}
-                <div className="flex flex-col bg-surface backdrop-blur-md border border-border-light rounded-lg overflow-hidden relative transition-all duration-200 hover:shadow-md hover:border-border-default">
-                    <div className="flex items-center gap-2 p-4 text-xs font-bold tracking-widest text-muted border-b border-border-light">
+                <div className="flex flex-col bg-card border border-border rounded-lg overflow-hidden relative transition-all duration-200 hover:shadow-md">
+                    <div className="flex items-center gap-2 p-4 text-xs font-bold tracking-widest text-muted-foreground border-b border-border">
                         <Zap size={16} />
                         <span>QUICK ACTIONS</span>
                     </div>
                     <div className="flex-1 grid grid-cols-4 gap-3 p-4">
-                        <button className="flex flex-col items-center justify-center gap-2 bg-surface border border-border-light rounded-xl cursor-pointer transition-all duration-200 text-text-secondary hover:bg-white/10 hover:-translate-y-0.5 hover:text-white" onClick={() => onNavigate('/memory')}>
+                        <button className="flex flex-col items-center justify-center gap-2 bg-background border border-border rounded-xl cursor-pointer transition-all duration-200 text-secondary-foreground hover:bg-accent hover:-translate-y-0.5 hover:text-accent-foreground" onClick={() => onNavigate('/memory')}>
                             <span className="text-2xl">📜</span>
                             <span className="text-xs font-medium">Memory Stream</span>
                         </button>
-                        <button className="flex flex-col items-center justify-center gap-2 bg-surface border border-border-light rounded-xl cursor-pointer transition-all duration-200 text-text-secondary hover:bg-white/10 hover:-translate-y-0.5 hover:text-white" onClick={() => onNavigate('/graph')}>
+                        <button className="flex flex-col items-center justify-center gap-2 bg-background border border-border rounded-xl cursor-pointer transition-all duration-200 text-secondary-foreground hover:bg-accent hover:-translate-y-0.5 hover:text-accent-foreground" onClick={() => onNavigate('/graph')}>
                             <span className="text-2xl">🕸️</span>
                             <span className="text-xs font-medium">Knowledge Graph</span>
                         </button>
-                        <button className="flex flex-col items-center justify-center gap-2 bg-surface border border-border-light rounded-xl cursor-pointer transition-all duration-200 text-text-secondary hover:bg-white/10 hover:-translate-y-0.5 hover:text-white" onClick={() => onNavigate('/brain')}>
+                        <button className="flex flex-col items-center justify-center gap-2 bg-background border border-border rounded-xl cursor-pointer transition-all duration-200 text-secondary-foreground hover:bg-accent hover:-translate-y-0.5 hover:text-accent-foreground" onClick={() => onNavigate('/processing')}>
                             <span className="text-2xl">🧠</span>
                             <span className="text-xs font-medium">Brain Console</span>
                         </button>
-                        <button className="flex flex-col items-center justify-center gap-2 bg-surface border border-border-light rounded-xl cursor-pointer transition-all duration-200 text-text-secondary hover:bg-white/10 hover:-translate-y-0.5 hover:text-white" onClick={() => onNavigate('/settings')}>
+                        <button className="flex flex-col items-center justify-center gap-2 bg-background border border-border rounded-xl cursor-pointer transition-all duration-200 text-secondary-foreground hover:bg-accent hover:-translate-y-0.5 hover:text-accent-foreground" onClick={() => onNavigate('/settings')}>
                             <span className="text-2xl">⚙️</span>
                             <span className="text-xs font-medium">Settings</span>
                         </button>
@@ -110,20 +110,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* 4. Mini Terminal (迷你终端) - 右下 */}
-                <div className="flex flex-col bg-surface backdrop-blur-md border border-border-light rounded-lg overflow-hidden relative transition-all duration-200 hover:shadow-md hover:border-border-default">
-                    <div className="flex items-center gap-2 p-4 text-xs font-bold tracking-widest text-muted border-b border-border-light">
+                <div className="flex flex-col bg-card border border-border rounded-lg overflow-hidden relative transition-all duration-200 hover:shadow-md">
+                    <div className="flex items-center gap-2 p-4 text-xs font-bold tracking-widest text-muted-foreground border-b border-border">
                         <TermIcon size={16} />
                         <span>SYSTEM LOGS</span>
                         <button className="ml-auto text-[10px] text-primary bg-transparent border-none cursor-pointer opacity-80 hover:opacity-100 hover:underline" onClick={() => onNavigate('/dev')}>VIEW ALL</button>
                     </div>
-                    <div className="flex-1 p-3 font-mono text-[11px] bg-black/30 overflow-hidden">
+                    <div className="flex-1 p-3 font-mono text-[11px] bg-muted-20 overflow-hidden">
                         {logs.length === 0 ? (
-                            <div className="text-disabled text-center mt-5 italic">No activity recorded</div>
+                            <div className="text-muted-foreground text-center mt-5 italic">No activity recorded</div>
                         ) : (
                             logs.map(log => (
                                 <div key={log.id} className={`flex gap-2 mb-1.5 opacity-80 ${getLevelClass(log.level)}`}>
-                                    <span className="text-muted">[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
-                                    <span className="text-primary flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">{log.message}</span>
+                                    <span className="text-muted-foreground">[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
+                                    <span className="text-foreground flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">{log.message}</span>
                                 </div>
                             ))
                         )}

@@ -264,3 +264,84 @@ import { Settings } from 'lucide-react';
 
 <Settings className="w-5 h-5 text-text-secondary hover:text-primary transition-colors" />
 ```
+
+---
+
+## 7. CSS 优先级与冲突处理
+
+> ⚠️ 本项目作为 SillyTavern 扩展，需要与宿主应用的全局样式共存。以下规范用于避免样式冲突。
+
+### 7.1 问题背景
+
+SillyTavern 有大量全局 CSS 规则，会影响我们的 UI。我们需要：
+1. **隔离** SillyTavern 的样式，不让其影响 Engram 组件
+2. **确保** Tailwind 工具类能正常工作
+
+### 7.2 CSS 选择器优先级
+
+```
+内联样式 (1000) > ID选择器 (100) > 类选择器 (10) > 元素选择器 (1)
+```
+
+### 7.3 Reset 规则规范
+
+❌ **错误写法** - 优先级 101，会覆盖所有 Tailwind 类：
+```css
+#engram-panel-root button {
+    border: none;
+}
+```
+
+✅ **正确写法** - 使用 `:where()` 将优先级降到 1：
+```css
+:where(#engram-panel-root) button {
+    border-width: 0;
+    border-style: solid;
+    border-color: transparent;
+}
+```
+
+### 7.4 颜色透明度规范
+
+本项目使用 CSS 变量定义颜色，不支持 Tailwind 原生的 opacity 语法 `bg-primary/20`。
+
+❌ **错误写法** - Tailwind JIT 不会生成此类：
+```tsx
+<div className="bg-primary/20" />
+```
+
+✅ **正确写法** - 使用 `tailwind.config.js` 中定义的色阶变体：
+```tsx
+<div className="bg-primary-20" />  // 对应 color-mix(in srgb, var(--primary) 20%, transparent)
+```
+
+**可用的颜色变体**（定义于 `tailwind.config.js`）：
+| 颜色 | 可用变体 |
+|------|----------|
+| `primary` | `5`, `10`, `20`, `30`, `50`, `90` |
+| `muted` | `20`, `30`, `50` |
+| `background` | `80` |
+| `secondary` | `80` |
+
+### 7.5 调试工具
+
+项目提供调试脚本 `debug-css.js`，可用于检查 CSS 规则冲突：
+
+```javascript
+// 在浏览器控制台运行
+fetch('/scripts/extensions/Engram_project/debug-css.js').then(r=>r.text()).then(eval)
+```
+
+输出内容包括：
+- Tailwind 类是否被正确生成
+- 匹配按钮的 CSS 规则及其优先级
+- 内联样式是否能正常覆盖
+
+### 7.6 常见问题排查
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| Tailwind 类不生效 | Reset 规则优先级过高 | 使用 `:where()` 包装选择器 |
+| `bg-primary/20` 无效 | 配置不支持原生 opacity | 改用 `bg-primary-20` |
+| hover 效果不显示 | 可能被 `transition: none` 阻止 | 检查 reset 规则 |
+| 内联样式不生效 | 某处使用了 `!important` | 用调试脚本定位规则 |
