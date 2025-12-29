@@ -16,15 +16,19 @@ interface TabPillsProps {
     activeTab: string;
     onChange: (id: string) => void;
     sticky?: boolean;
+    top?: number | string; // 允许自定义吸顶距离
     className?: string;
 }
 
-export const TabPills: React.FC<TabPillsProps> = ({ tabs, activeTab, onChange, sticky = true, className = '' }) => (
-    <div className={`
-        flex overflow-x-auto gap-2 mb-6 pb-1 no-scrollbar border-b border-border
-        ${sticky ? 'sticky top-0 z-10 bg-background py-2 -mx-6 px-6 md:-mx-12 md:px-12' : 'px-4 md:px-0'}
-        ${className}
-    `}>
+export const TabPills: React.FC<TabPillsProps> = ({ tabs, activeTab, onChange, sticky = true, top = 0, className = '' }) => (
+    <div
+        className={`
+            flex overflow-x-auto gap-2 mb-6 pb-1 no-scrollbar border-b border-border
+            ${sticky ? 'sticky z-10 bg-background py-2 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12' : 'px-0'}
+            ${className}
+        `}
+        style={sticky ? { top } : undefined}
+    >
         {tabs.map((tab) => (
             <button
                 key={tab.id}

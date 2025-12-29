@@ -5,8 +5,8 @@
     "type": "module",
     "main": "src/index.tsx",
     "scripts": {
-        "dev": "vite build --watch",
-        "dev:serve": "vite --mode development",
+        "dev": "node scripts/dev-proxy.js && vite",
+        "dev:watch": "vite build --watch",
         "build": "vite build",
         "preview": "vite preview",
         "prettify": "prettier --write \"src/**/*.ts\" \"src/**/*.tsx\""

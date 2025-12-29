@@ -88,5 +88,27 @@
 ## 6. 布局结构
 
 -   **Sidebar**: 左侧固定，使用 `border-r border-sidebar-border` 分割
--   **Header**: 无传统大通栏，功能按钮悬浮于右上角
 -   **Panel Controls**: Z-index 最高层
+
+---
+
+## 7. 移动端与调试最佳实践 (Mobile & Debugging)
+
+### 7.1 移动端高度坍塌 (Mobile Height Collapse)
+
+在 SillyTavern 的嵌入式环境中，移动端浏览器的视口高度 (Viewport Height) 计算极易出错。
+> [!WARNING]
+> **不要依赖默认高度**。只要是全屏覆盖层 (Overlay/Modal)，必须显式强制设置高度和宽度：
+> ```tsx
+> style={{ height: '100dvh', width: '100vw' }}
+> ```
+> 仅使用 `h-screen` 或 `bottom-0` 往往会导致计算为 `0` 或被地址栏挤压，造成背景透明或内容截断。
+
+### 7.2 样式调试指南 (Debugging Method)
+
+由于 Tailwind 类可能被宿主环境 CSS 覆盖，或者 CSS 变量存在未知的透明度：
+> [!TIP]
+> **不要瞎猜 CSS**。遇到样式异常（如透明度问题、层级覆盖），优先使用 JS 脚本在控制台获取真实计算样式：
+> 1. 打开控制台 (Console)
+> 2. 使用 `window.getComputedStyle($0)` 检查元素的 `zIndex`, `opacity`, `backgroundColor` (查看 rgba alpha 值)
+> 3. 编写简单的 JS 脚本批量打印层级关系，而不是反复修改 CSS 碰运气。

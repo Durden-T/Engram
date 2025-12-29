@@ -37,8 +37,12 @@ npm install
 # 构建
 npm run build
 
-# 开发模式（需刷新酒馆查看更改）
-npm run build -- --watch
+# HMR 开发模式（推荐，修改代码后无需刷新页面，实时更新）
+npm run dev
+# 注意：停止 HMR 后需运行 npm run build 恢复正常文件
+
+# 传统开发模式（修改代码后自动构建，需手动刷新酒馆）
+npm run dev:watch
 ```
 
 ## 📁 项目结构

@@ -12,8 +12,10 @@ export default defineConfig(({ mode }) => ({
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
-        // 禁用 HMR 避免跨域 preamble 问题
-        hmr: false,
+        // HMR 配置
+        hmr: {
+            overlay: false, // 禁用错误遮罩，避免在 ST 中遮挡太严重
+        },
         // 允许访问项目根目录的 assets
         fs: {
             allow: ['..'],

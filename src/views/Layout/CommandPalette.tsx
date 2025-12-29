@@ -1,7 +1,8 @@
 /**
- * CommandPalette - 万用功能搜索框
+ * CommandPalette - 万用功能搜索框 (Spotlight 风格)
  *
- * 位于顶栏，支持搜索命令、导航页面和搜索记忆
+ * 位于顶栏作为触发器，点击后全屏模态框显示。
+ * 支持搜索命令、导航页面和搜索记忆。
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -20,7 +21,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [filteredCommands, setFilteredCommands] = useState<CommandItem[]>(COMMANDS);
 
-    const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // 生成主题命令
@@ -88,24 +88,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
         setSelectedIndex(0);
     }, [query]);
 
-    // 点击外部关闭
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // 键盘快捷键
+    // 键盘快捷键 (Open)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             // Cmd+K or Ctrl+K to open
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
-                inputRef.current?.focus();
                 setIsOpen(true);
             }
         };
@@ -113,14 +101,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (!isOpen) {
-            if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                setIsOpen(true);
-            }
-            return;
+    // 自动聚焦
+    useEffect(() => {
+        if (isOpen) {
+            setTimeout(() => inputRef.current?.focus(), 50);
         }
+    }, [isOpen]);
 
+    // 键盘导航 (Navigation)
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         const totalItems = filteredCommands.length + (query ? 1 : 0); // +1 for "Search Memory" option
 
         switch (e.key) {
@@ -138,101 +127,131 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
                 break;
             case 'Escape':
                 setIsOpen(false);
-                inputRef.current?.blur();
                 break;
         }
     };
 
     const executeSelected = () => {
         if (filteredCommands.length > 0 && selectedIndex < filteredCommands.length) {
-            // 执行命令
             const cmd = filteredCommands[selectedIndex];
             cmd.action(onNavigate);
         } else if (query) {
-            // 搜索记忆 (最后一项)
             console.log('Searching memory for:', query);
-            onNavigate('/memory');
+            onNavigate('/memory'); // Pass query if needed
         }
         setIsOpen(false);
         setQuery('');
     };
 
     return (
-        <div className="relative w-full max-w-xl" ref={wrapperRef}>
-            <div className={`flex items-center gap-2 px-3 py-2 bg-muted-50 border border-input rounded-md transition-all duration-200 ${isOpen ? 'ring-2 ring-ring border-transparent bg-background' : 'hover:bg-muted-80'}`}>
-                <Search size={16} className="text-muted-foreground shrink-0" />
-                <input
-                    ref={inputRef}
-                    type="text"
-                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm"
-                    placeholder="搜索命令、页面或记忆... (Cmd+K)"
-                    value={query}
-                    onChange={(e) => {
-                        setQuery(e.target.value);
-                        setIsOpen(true);
-                    }}
-                    onFocus={() => setIsOpen(true)}
-                    onKeyDown={handleKeyDown}
-                />
-                {!query && <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono border border-border"><Command size={10} />K</div>}
-            </div>
+        <>
+            {/* Trigger Button (Icons only or small bar) */}
+            <button
+                onClick={() => setIsOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors border border-transparent hover:border-border"
+                title="搜索 (Cmd+K)"
+            >
+                <Search size={18} />
+                <span className="hidden md:inline text-xs opacity-70">搜索...</span>
+                <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-2">
+                    <span className="text-xs">⌘</span>K
+                </kbd>
+            </button>
 
+            {/* Modal Overlay */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 p-1 bg-popover border border-border rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-                    {/* 命令列表 */}
-                    {filteredCommands.length > 0 && (
-                        <div className="py-1">
-                            <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">功能与导航</div>
-                            {filteredCommands.map((cmd, index) => (
-                                <div
-                                    key={cmd.id}
-                                    className={`flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors ${index === selectedIndex ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted-50'}`}
-                                    onClick={() => {
-                                        cmd.action(onNavigate);
-                                        setIsOpen(false);
-                                        setQuery('');
-                                    }}
-                                >
-                                    <cmd.icon size={16} className={`shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-muted-foreground'}`} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium">{cmd.label}</div>
-                                        {cmd.description && (
-                                            <div className="text-xs text-muted-foreground truncate">{cmd.description}</div>
-                                        )}
+                <div
+                    className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4 animate-in fade-in duration-200"
+                    style={{
+                        height: '100dvh',
+                        width: '100vw',
+                        backgroundColor: 'rgba(0,0,0,0.5)', // Explicit semi-transparent black
+                        backdropFilter: 'blur(4px)'
+                    }}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setIsOpen(false);
+                    }}
+                >
+                    <div
+                        className="w-full max-w-xl border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-top-4 duration-200"
+                        style={{
+                            backgroundColor: 'var(--popover)', // Force theme background color
+                            color: 'var(--popover-foreground)'
+                        }}
+                    >
+                        {/* Input Area */}
+                        <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+                            <Search size={20} className="text-muted-foreground shrink-0" />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="flex-1 bg-transparent border-none outline-none text-lg text-foreground placeholder:text-muted-foreground/50"
+                                placeholder="输入命令、跳转页面或搜索记忆..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                            />
+                            <div className="text-[10px] text-muted-foreground border border-border px-1.5 py-0.5 rounded bg-muted/50">ESC</div>
+                        </div>
+
+                        {/* Results List */}
+                        <div className="max-h-[60vh] overflow-y-auto p-2 scroll-smooth">
+                            {/* ... (Existing List Rendering Logic) ... */}
+                            {filteredCommands.length > 0 && (
+                                <div className="space-y-1">
+                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">建议操作</div>
+                                    {filteredCommands.map((cmd, index) => (
+                                        <div
+                                            key={cmd.id}
+                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${index === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'}`}
+                                            onClick={() => {
+                                                cmd.action(onNavigate);
+                                                setIsOpen(false);
+                                                setQuery('');
+                                            }}
+                                            onMouseEnter={() => setSelectedIndex(index)}
+                                        >
+                                            <cmd.icon size={18} className={`shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-muted-foreground'}`} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm font-medium">{cmd.label}</div>
+                                                {cmd.description && (
+                                                    <div className="text-xs text-muted-foreground/80 truncate">{cmd.description}</div>
+                                                )}
+                                            </div>
+                                            {index === selectedIndex && <CornerDownLeft size={16} className="text-muted-foreground/50" />}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {query && (
+                                <div className="mt-2 pt-2 border-t border-border/50">
+                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">全站搜索</div>
+                                    <div
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${selectedIndex === filteredCommands.length ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'}`}
+                                        onClick={() => executeSelected()}
+                                        onMouseEnter={() => setSelectedIndex(filteredCommands.length)}
+                                    >
+                                        <Search size={18} className={`shrink-0 ${selectedIndex === filteredCommands.length ? 'text-primary' : 'text-muted-foreground'}`} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium">搜索记忆: "<span className="text-primary">{query}</span>"</div>
+                                            <div className="text-xs text-muted-foreground/80">在记忆流和知识图谱中深度搜索</div>
+                                        </div>
+                                        {selectedIndex === filteredCommands.length && <CornerDownLeft size={16} className="text-muted-foreground/50" />}
                                     </div>
-                                    {index === selectedIndex && <CornerDownLeft size={14} className="text-muted-foreground" />}
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            )}
 
-                    {/* 记忆搜索选项 (仅当有输入时显示) */}
-                    {query && (
-                        <div className="py-1 border-t border-border mt-1 pt-1">
-                            <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">搜索</div>
-                            <div
-                                className={`flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors ${selectedIndex === filteredCommands.length ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted-50'}`}
-                                onClick={() => {
-                                    executeSelected();
-                                }}
-                            >
-                                <Search size={16} className={`shrink-0 ${selectedIndex === filteredCommands.length ? 'text-accent-foreground' : 'text-muted-foreground'}`} />
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium">搜索记忆: "{query}"</div>
-                                    <div className="text-xs text-muted-foreground">在记忆流和图谱中搜索此关键词</div>
+                            {filteredCommands.length === 0 && !query && (
+                                <div className="px-4 py-12 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+                                    <Search size={32} className="opacity-20 mb-2" />
+                                    <p>输入关键词开始搜索...</p>
                                 </div>
-                                {selectedIndex === filteredCommands.length && <CornerDownLeft size={14} className="text-muted-foreground" />}
-                            </div>
+                            )}
                         </div>
-                    )}
-
-                    {filteredCommands.length === 0 && !query && (
-                        <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-                            无需搜索，直接输入...
-                        </div>
-                    )}
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };

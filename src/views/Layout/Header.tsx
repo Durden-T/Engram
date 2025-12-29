@@ -1,7 +1,8 @@
-// 头部组件
 import React from 'react';
 import { Menu, X } from 'lucide-react';
 import { CommandPalette } from './CommandPalette';
+import { EngramIcon } from './EngramIcon';
+import { EngramTextLogo } from './EngramTextLogo';
 
 interface HeaderProps {
     onToggleSidebar: () => void;
@@ -12,39 +13,46 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
     onToggleSidebar,
-    isMobile,
+    isMobile, // Deprecated prop, handled by CSS
     onClose,
     onNavigate,
 }) => {
     return (
-        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-sidebar text-sidebar-foreground z-50 transition-colors duration-300">
-            <div className="flex items-center gap-3">
-                {isMobile && (
-                    <button
-                        className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                        onClick={onToggleSidebar}
-                        title="菜单"
-                    >
-                        <Menu size={20} />
-                    </button>
-                )}
-                <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    Engram
-                </span>
+        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-sidebar/95 backdrop-blur z-50 transition-all duration-300 w-full flex-shrink-0">
+            {/* Left: Logo & Mobile Toggle */}
+            <div className="flex items-center gap-3 w-16 md:w-64">
+                {/* Mobile Menu Toggle */}
+                <button
+                    className="p-2 -ml-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors md:hidden"
+                    onClick={onToggleSidebar}
+                    title="菜单"
+                >
+                    <Menu size={20} />
+                </button>
+
+                {/* Logo - Adaptive visibility */}
+                <div className="flex items-center gap-2">
+                    <div className="md:hidden"><EngramIcon size={24} className="text-primary" /></div>
+                    <div className="hidden md:flex items-center gap-2">
+                        <EngramIcon size={20} className="text-primary" />
+                        <span className="font-semibold text-sidebar-foreground tracking-tight">Engram</span>
+                    </div>
+                </div>
             </div>
 
-            {/* Command Palette (居中) */}
-            <div className="flex-1 max-w-xl mx-4 flex justify-center">
+            {/* Center: Command Palette */}
+            <div className="flex-1 flex justify-center max-w-xl mx-2 md:mx-4">
                 <CommandPalette onNavigate={onNavigate} />
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right: Window Controls */}
+            <div className="flex items-center gap-2 w-16 md:w-64 justify-end">
                 <button
-                    className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    className="p-2 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors text-muted-foreground"
                     onClick={onClose}
-                    title="关闭"
+                    title="关闭扩展"
                 >
-                    <X size={18} />
+                    <X size={20} />
                 </button>
             </div>
         </header>

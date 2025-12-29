@@ -101,20 +101,14 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
                 {mainTab === 'model' && (
                     <div className="flex flex-col gap-6">
                         {/* 子 Tab */}
-                        <div className="flex gap-1 border-b border-border pb-1">
-                            {MODEL_SUB_TABS.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors relative
-                                        ${modelSubTab === tab.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                                    onClick={() => setModelSubTab(tab.id)}
-                                >
-                                    <tab.icon size={14} />
-                                    {tab.label}
-                                    {modelSubTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-foreground" />}
-                                </button>
-                            ))}
-                        </div>
+                        <TabPills
+                            tabs={MODEL_SUB_TABS.map(t => ({ ...t, icon: <t.icon size={14} /> }))}
+                            activeTab={modelSubTab}
+                            onChange={(id) => setModelSubTab(id as ModelSubTabType)}
+                            sticky={true}
+                            top={52} // Level 2 sticky
+                            className="mb-6 border-b-0"
+                        />
 
                         {/* LLM 预设 */}
                         {modelSubTab === 'llm' && (
