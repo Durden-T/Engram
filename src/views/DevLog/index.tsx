@@ -113,10 +113,10 @@ export const DevLog: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full">
-            {/* 页面标题 */}
-            <div className="flex items-center gap-2 mb-2">
-                <Terminal size={20} className="text-muted-foreground" />
-                <h1 className="text-xl font-light text-foreground tracking-tight">开发日志</h1>
+            {/* 页面标题 - 统一样式 */}
+            <div className="mb-6">
+                <h1 className="text-2xl font-light text-foreground tracking-tight mb-2">开发日志</h1>
+                <p className="text-sm text-muted-foreground">运行时日志和模型调用记录</p>
             </div>
 
             {/* Tab 切换 - sticky */}

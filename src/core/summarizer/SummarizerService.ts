@@ -126,7 +126,7 @@ export class SummarizerService {
     private getFromChatMetadata(key: string): unknown {
         const metadata = getChatMetadata();
         if (!metadata) {
-            this.log('warn', 'chat_metadata 不可用');
+            // chat_metadata 在某些情况下不可用（如未选择角色），静默返回
             return undefined;
         }
 
@@ -150,7 +150,7 @@ export class SummarizerService {
     private saveToChatMetadata(key: string, value: unknown): void {
         const metadata = getChatMetadata();
         if (!metadata) {
-            this.log('warn', 'chat_metadata 不可用，无法保存');
+            // chat_metadata 不可用，静默返回
             return;
         }
 

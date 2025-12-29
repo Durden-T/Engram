@@ -6,29 +6,92 @@ export interface EngramSettings {
     presets: any; // Define properly later
     templates: any; // Define properly later
     promptTemplates: PromptTemplate[]; // 提示词模板列表
+    hasSeenWelcome: boolean; // 是否已看过欢迎动画
+    lastReadVersion: string; // 最后已读的版本号
     // Add other persistent keys here
 }
 
+/** 默认设置 */
+const defaultSettings: EngramSettings = Object.freeze({
+    theme: 'odysseia',
+    presets: {},
+    templates: {},
+    promptTemplates: [],
+    hasSeenWelcome: false,
+    lastReadVersion: '0.0.0',
+});
+
+/**
+ * SettingsManager - Engram 设置管理器
+ * 
+ * 使用 SillyTavern.getContext().extensionSettings API 进行持久化
+ * 这是 ST 官方推荐的扩展设置存储方式
+ */
 export class SettingsManager {
     private static readonly EXTENSION_NAME = 'engram';
-    private static saveTimeout: any = null;
 
     /**
-     * Load settings from SillyTavern global state
+     * 获取 SillyTavern context
      */
-    public static loadSettings(): EngramSettings {
-        try {
-            // @ts-ignore
-            const st = window.SillyTavern?.extension_settings?.[this.EXTENSION_NAME] || {};
-            return {
-                theme: st.theme || 'odysseia', // Default to new theme
-                presets: st.presets || {},
-                templates: st.templates || {},
-                promptTemplates: st.promptTemplates || [],
-            };
-        } catch (e) {
-            Logger.warn('SettingsManager', 'Failed to load settings', e);
-            return { theme: 'odysseia', presets: {}, templates: {}, promptTemplates: [] };
+    private static getContext(): any {
+        // @ts-ignore
+        return window.SillyTavern?.getContext?.();
+    }
+
+    /**
+     * 获取扩展设置对象
+     * 如果不存在则创建
+     */
+    private static getExtensionSettings(): EngramSettings {
+        const context = this.getContext();
+        if (!context?.extensionSettings) {
+            Logger.warn('SettingsManager', 'SillyTavern context.extensionSettings not available');
+            return { ...defaultSettings };
+        }
+
+        // 如果 engram 设置不存在，初始化它
+        if (!context.extensionSettings[this.EXTENSION_NAME]) {
+            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
+            Logger.debug('SettingsManager', 'Initialized engram settings with defaults');
+            // 保存初始化的设置
+            this.save();
+        }
+
+        return context.extensionSettings[this.EXTENSION_NAME];
+    }
+
+    /**
+     * 初始化设置（在扩展加载时调用）
+     * 确保所有必需的字段都存在
+     */
+    public static initSettings(): void {
+        const context = this.getContext();
+        if (!context?.extensionSettings) {
+            Logger.warn('SettingsManager', 'Cannot init settings: context not available');
+            return;
+        }
+
+        let shouldSave = false;
+
+        // 如果 engram 设置不存在，创建它
+        if (!context.extensionSettings[this.EXTENSION_NAME]) {
+            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
+            shouldSave = true;
+            Logger.info('SettingsManager', 'Created engram settings');
+        }
+
+        // 确保所有必需的字段都存在（补全缺失的字段）
+        const settings = context.extensionSettings[this.EXTENSION_NAME];
+        for (const key of Object.keys(defaultSettings) as (keyof EngramSettings)[]) {
+            if (!(key in settings)) {
+                (settings as any)[key] = (defaultSettings as any)[key];
+                shouldSave = true;
+                Logger.debug('SettingsManager', `Added missing field: ${key}`);
+            }
+        }
+
+        if (shouldSave) {
+            this.save();
         }
     }
 
@@ -36,17 +99,55 @@ export class SettingsManager {
      * Get a specific setting value
      */
     public static get<K extends keyof EngramSettings>(key: K): EngramSettings[K] {
-        const settings = this.loadSettings();
-        return settings[key];
+        const settings = this.getExtensionSettings();
+        const value = settings[key];
+        // 如果值不存在，返回默认值
+        return value !== undefined ? value : defaultSettings[key];
     }
 
     /**
      * Save a specific setting value
+     * 直接更新 context.extensionSettings 中的字段
      */
-    public static set<K extends keyof EngramSettings>(key: K, value: EngramSettings[K]) {
-        const settings = this.loadSettings();
-        settings[key] = value;
-        this.saveToST(settings);
+    public static set<K extends keyof EngramSettings>(key: K, value: EngramSettings[K]): void {
+        const context = this.getContext();
+        if (!context?.extensionSettings) {
+            Logger.warn('SettingsManager', 'Cannot set: context.extensionSettings not available');
+            return;
+        }
+
+        // 确保 engram 对象存在
+        if (!context.extensionSettings[this.EXTENSION_NAME]) {
+            context.extensionSettings[this.EXTENSION_NAME] = { ...defaultSettings };
+        }
+
+        // 更新单个字段
+        context.extensionSettings[this.EXTENSION_NAME][key] = value;
+        Logger.debug('SettingsManager', `Set ${String(key)} = ${JSON.stringify(value)}`);
+
+        // 保存到服务器
+        this.save();
+    }
+
+    /**
+     * 保存设置到服务器
+     */
+    private static save(): void {
+        const context = this.getContext();
+        if (context?.saveSettingsDebounced) {
+            context.saveSettingsDebounced();
+            Logger.debug('SettingsManager', 'Saved via context.saveSettingsDebounced');
+        } else {
+            Logger.warn('SettingsManager', 'saveSettingsDebounced not available');
+        }
+    }
+
+    /**
+     * Load settings from SillyTavern global state
+     * 兼容旧代码的接口
+     */
+    public static loadSettings(): EngramSettings {
+        return this.getExtensionSettings();
     }
 
     /**
@@ -58,56 +159,4 @@ export class SettingsManager {
         const templates = this.get('promptTemplates') || [];
         return templates.find((t: PromptTemplate) => t.category === category && t.enabled) || null;
     }
-
-    /**
-     * Persist to SillyTavern extension_settings
-     * This updates the global object immediately for local usage,
-     * and debounces the server save call.
-     */
-    private static saveToST(settings: EngramSettings) {
-        // 1. Update Global Object
-        // @ts-ignore
-        if (!window.SillyTavern) return;
-
-        // @ts-ignore
-        if (!window.SillyTavern.extension_settings) {
-            // @ts-ignore
-            window.SillyTavern.extension_settings = {};
-        }
-
-        // @ts-ignore
-        window.SillyTavern.extension_settings[this.EXTENSION_NAME] = settings;
-
-        // 2. Trigger Save (Debounced)
-        if (this.saveTimeout) clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => {
-            this.pushToServer();
-        }, 1000);
-    }
-
-    /**
-     * Push settings to server via ST API
-     * Note: We use the generic extension settings save mechanism if available,
-     * or rely on ST's auto-save if it observes the object. 
-     * Usually ST requires manual trigger for extensions.js based extensions,
-     * assuming they call `saveSettingsDebounced()` globally.
-     */
-    private static pushToServer() {
-        Logger.info('SettingsManager', 'Persisting settings to server...');
-        try {
-            // Try calling standard ST save function if exposed
-            // @ts-ignore
-            if (window.saveSettingsDebounced) {
-                // @ts-ignore
-                window.saveSettingsDebounced();
-            } else {
-                // Fallback: Manually fetch
-                // This might need adjustment based on valid ST API endpoints for extensions
-                // For now, assume global save works or ignore if local-only usage
-            }
-        } catch (e) {
-            Logger.error('SettingsManager', 'Failed to save settings', e);
-        }
-    }
 }
-

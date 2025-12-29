@@ -41,7 +41,8 @@
         ]
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "manifest.json"
     ],
     "exclude": [
         "node_modules",

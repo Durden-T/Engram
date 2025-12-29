@@ -127,20 +127,52 @@ export class WorldInfoService {
 
     /**
      * 获取当前聊天的绑定世界书名称
-     * 如果不存在则创建
+     * 使用自定义命名规则：角色name2_Engram_聊天文件名
      */
     static async getChatWorldbook(): Promise<string | null> {
-        const helper = getTavernHelper();
-        if (helper?.getOrCreateChatWorldbook) {
-            try {
-                return await helper.getOrCreateChatWorldbook('current');
-            } catch (e) {
-                console.error('[Engram] WorldInfoService: 获取聊天世界书失败', e);
+        try {
+            // 获取上下文信息用于生成自定义名称
+            // @ts-expect-error - SillyTavern 全局对象
+            const context = window.SillyTavern?.getContext?.();
+            if (!context) {
+                console.warn('[Engram] WorldInfoService: 无法获取 ST 上下文');
+                // 回退到 TavernHelper 默认行为
+                const helper = getTavernHelper();
+                if (helper?.getOrCreateChatWorldbook) {
+                    return await helper.getOrCreateChatWorldbook('current');
+                }
                 return null;
             }
+
+            const characterName = context.name2 || 'Unknown';
+            // chatId 通常就是聊天文件名（不含扩展名）
+            const chatFileName = context.chatId || 'chat';
+
+            // 生成自定义世界书名称：角色名_Engram_聊天文件名
+            const worldbookName = `${characterName}_Engram_${chatFileName}`
+                .replace(/[<>:"/\\|?*]/g, '_')  // 移除非法文件名字符
+                .replace(/\s+/g, '_')           // 空格转下划线
+                .substring(0, 100);             // 限制长度
+
+            console.debug('[Engram] WorldInfoService: 使用世界书名称', worldbookName);
+
+            // 确保世界书存在（通过创建空条目来初始化）
+            const helper = getTavernHelper();
+            if (helper?.createWorldbookEntries) {
+                try {
+                    // createWorldbookEntries 会自动创建不存在的世界书
+                    // 传入空数组不会添加条目，只是确保世界书存在
+                    await helper.createWorldbookEntries(worldbookName, []);
+                } catch (e) {
+                    console.debug('[Engram] 世界书可能已存在:', e);
+                }
+            }
+
+            return worldbookName;
+        } catch (e) {
+            console.error('[Engram] WorldInfoService: 获取聊天世界书失败', e);
+            return null;
         }
-        console.warn('[Engram] WorldInfoService: TavernHelper 不可用');
-        return null;
     }
 
     /**

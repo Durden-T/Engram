@@ -14,6 +14,9 @@
 		},
 		{
 			"path": "../third-party/vectors-enhanced"
+		},
+		{
+			"path": "../../../../../Desktop/extension_extension_project/JS-Slash-Runner"
 		}
 	],
 	"settings": {}

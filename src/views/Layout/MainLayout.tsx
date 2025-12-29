@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     BrainCircuit,
@@ -7,11 +7,15 @@ import {
     Database,
     Terminal,
     ArrowUpRight,
-    X
+    X,
+    Bell
 } from 'lucide-react';
 import { GlobalStyles } from './GlobalStyles';
 import Header from './Header';
 import { EngramIcon } from './EngramIcon';
+import { EngramTextLogo } from './EngramTextLogo';
+import { UpdateService } from '../../infrastructure/UpdateService';
+import { UpdateNotice } from '../components/UpdateNotice';
 
 // Navigation Items Configuration
 const NAV_ITEMS = [
@@ -33,47 +37,96 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, setActiveTab, onClose }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [showUpdateNotice, setShowUpdateNotice] = useState(false);
+    const [hasUnreadUpdate, setHasUnreadUpdate] = useState(false);
+
+    // 检测是否有未读更新
+    useEffect(() => {
+        const checkUpdate = async () => {
+            try {
+                const unread = await UpdateService.hasUnreadUpdate();
+                setHasUnreadUpdate(unread);
+            } catch (e) {
+                console.debug('[Engram] 检查更新失败', e);
+            }
+        };
+        checkUpdate();
+    }, []);
 
     return (
-        <div className="flex flex-col absolute inset-0 w-full h-full bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30 selection:text-primary" id="engram-layout-root">
+        <div className="flex absolute inset-0 w-full h-full bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30 selection:text-primary" id="engram-layout-root">
             <GlobalStyles />
 
-            {/* Unified Header (Responsive) */}
-            <Header
-                onToggleSidebar={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                isMobile={false}
-                onClose={onClose}
-                onNavigate={(path) => setActiveTab(path.replace('/', ''))}
+            {/* Update Notice Modal */}
+            <UpdateNotice
+                isOpen={showUpdateNotice}
+                onClose={() => {
+                    setShowUpdateNotice(false);
+                    setHasUnreadUpdate(false);
+                }}
             />
 
-            <div className="flex flex-1 overflow-hidden relative">
-                {/* Sidebar (Desktop Only) - Compact Icon Mode - Using [display:none] to avoid .hidden class pollution from ST */}
-                <aside className="[display:none] md:flex w-16 flex-shrink-0 bg-sidebar flex-col z-40 items-center pt-4 border-r border-border/50">
-                    <nav className="flex-1 w-full flex flex-col items-center gap-4 overflow-y-auto no-scrollbar">
-                        {NAV_ITEMS.map((item) => {
-                            const Icon = item.icon;
-                            const isActive = activeTab === item.id;
-                            return (
-                                <button
-                                    key={item.id}
-                                    onClick={() => setActiveTab(item.id)}
-                                    title={item.label}
-                                    className={`
-                                        w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 group
-                                        ${isActive
-                                            ? 'text-primary scale-110'
-                                            : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/10'}
-                                    `}
-                                >
-                                    <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
-                                </button>
-                            );
-                        })}
-                    </nav>
+            {/* Sidebar (Desktop Only) - 紧凑布局 */}
+            <aside className="[display:none] md:flex w-36 flex-shrink-0 bg-sidebar flex-col z-40 pt-4 px-2 border-r border-border/50">
+                <nav className="flex-1 w-full flex flex-col gap-1 overflow-y-auto no-scrollbar">
+                    {NAV_ITEMS.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`
+                                    w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all duration-200 text-left
+                                    ${isActive
+                                        ? 'bg-primary/10 text-primary'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/10'}
+                                `}
+                            >
+                                <Icon size={18} strokeWidth={isActive ? 2 : 1.5} className="flex-shrink-0" />
+                                <span className={`text-xs ${isActive ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </nav>
 
-                    {/* Bottom Logo can be here if needed, but Header has it now */}
-                    <div className="pb-4 opacity-50"><EngramIcon size={16} /></div>
-                </aside>
+                {/* Bottom Area - 更新通知 + Logo */}
+                <div className="pb-3 pt-2 border-t border-border/30 mt-2 space-y-2">
+                    {/* 更新通知入口 */}
+                    <button
+                        onClick={() => setShowUpdateNotice(true)}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/10 text-left"
+                    >
+                        <div className="relative">
+                            <Bell size={16} strokeWidth={1.5} />
+                            {hasUnreadUpdate && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                            )}
+                        </div>
+                        <span className="text-xs">更新通知</span>
+                        {hasUnreadUpdate && (
+                            <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary rounded-full">
+                                NEW
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Logo - 左对齐 */}
+                    <div className="opacity-40 text-muted-foreground px-2">
+                        <EngramTextLogo height={12} />
+                    </div>
+                </div>
+            </aside>
+
+            {/* Right Content Area (Header + Main) */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+                {/* Unified Header (Responsive) */}
+                <Header
+                    onToggleSidebar={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    isMobile={false}
+                    onClose={onClose}
+                    onNavigate={(path) => setActiveTab(path.replace('/', ''))}
+                />
 
                 {/* Mobile Menu Overlay (Drawer Style) */}
                 {isMobileMenuOpen && (
@@ -136,13 +189,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, set
 
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col relative w-full overflow-hidden bg-background">
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 lg:p-12 scroll-smooth">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden pt-0 px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 scroll-smooth">
                         <div className="max-w-6xl mx-auto min-h-full pb-20">
                             {children}
                         </div>
                     </div>
                 </main>
-            </div>
+            </div>  {/* End Right Content Area */}
         </div>
     );
 };

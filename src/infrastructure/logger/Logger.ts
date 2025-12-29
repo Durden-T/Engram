@@ -41,9 +41,9 @@ function formatTime(timestamp: number): string {
 }
 
 /**
- * 写入日志条目
+ * 写入日志条目（仅内存，不持久化）
  */
-async function writeLog(level: LogLevel, module: string, message: string, data?: unknown): Promise<void> {
+function writeLog(level: LogLevel, module: string, message: string, data?: unknown): void {
     if (level < config.minLevel) return;
 
     const entry: LogEntry = {
@@ -58,22 +58,13 @@ async function writeLog(level: LogLevel, module: string, message: string, data?:
     // 添加到缓存
     logCache.push(entry);
 
+    // 限制最大条数
+    if (logCache.length > config.maxEntries) {
+        logCache = logCache.slice(-config.maxEntries);
+    }
+
     // 发送到订阅者
     logSubject.next(entry);
-
-    // 持久化到数据库
-    try {
-        const db = await getDB();
-        await db.logs.add(entry);
-
-        // 检查是否需要清理旧日志
-        const count = await db.logs.count();
-        if (count > config.maxEntries) {
-            await pruneOldLogs(count - config.maxEntries);
-        }
-    } catch (err) {
-        console.error('[Engram/Logger] 日志持久化失败:', err);
-    }
 }
 
 /**
@@ -120,27 +111,20 @@ function setupEventBusListener(): void {
  */
 export const Logger = {
     /**
-     * 初始化 Logger
+     * 初始化 Logger（纯内存模式）
      */
-    async init(userConfig?: Partial<LoggerConfig>): Promise<void> {
+    init(userConfig?: Partial<LoggerConfig>): void {
         if (userConfig) {
             config = { ...config, ...userConfig };
         }
 
-        // 从数据库加载历史日志到缓存
-        try {
-            const db = await getDB();
-            logCache = await db.logs.orderBy('timestamp').reverse().limit(config.maxEntries).toArray();
-            logCache.reverse(); // 恢复时间顺序
-        } catch (err) {
-            console.error('[Engram/Logger] 加载历史日志失败:', err);
-            logCache = [];
-        }
+        // 初始化时清空缓存
+        logCache = [];
 
         // 设置 EventBus 监听
         setupEventBusListener();
 
-        Logger.info('Logger', 'Logger 初始化完成', { maxEntries: config.maxEntries });
+        Logger.info('Logger', 'Logger 初始化完成');
     },
 
     /**
@@ -194,17 +178,11 @@ export const Logger = {
     },
 
     /**
-     * 清空所有日志
+     * 清空所有日志（仅内存）
      */
-    async clear(): Promise<void> {
-        try {
-            const db = await getDB();
-            await db.logs.clear();
-            logCache = [];
-            Logger.info('Logger', '日志已清空');
-        } catch (err) {
-            console.error('[Engram/Logger] 清空日志失败:', err);
-        }
+    clear(): void {
+        logCache = [];
+        Logger.info('Logger', '日志已清空');
     },
 
     /**

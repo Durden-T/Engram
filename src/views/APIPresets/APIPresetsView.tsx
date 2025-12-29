@@ -106,8 +106,8 @@ export const APIPresets: React.FC<APIPresetsProps> = () => {
                             activeTab={modelSubTab}
                             onChange={(id) => setModelSubTab(id as ModelSubTabType)}
                             sticky={true}
-                            top={52} // Level 2 sticky
-                            className="mb-6 border-b-0"
+                            top={0}
+                            className="mb-6"
                         />
 
                         {/* LLM 预设 */}

@@ -24,7 +24,7 @@ export const TabPills: React.FC<TabPillsProps> = ({ tabs, activeTab, onChange, s
     <div
         className={`
             flex overflow-x-auto gap-2 mb-6 pb-1 no-scrollbar border-b border-border
-            ${sticky ? 'sticky z-10 bg-background py-2 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12' : 'px-0'}
+            ${sticky ? 'sticky z-10 bg-background pt-4 pb-2 -mt-4 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12' : 'px-0'}
             ${className}
         `}
         style={sticky ? { top } : undefined}

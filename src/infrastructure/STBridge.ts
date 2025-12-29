@@ -21,6 +21,11 @@ export async function initializeEngram(): Promise<void> {
 
     Logger.info('STBridge', 'Engram 插件正在初始化...');
 
+    // 初始化设置管理器
+    const { SettingsManager } = await import('./SettingsManager');
+    SettingsManager.initSettings();
+    Logger.info('STBridge', 'SettingsManager initialized');
+
     // 检查酒馆接口对接状态
     try {
         const { checkTavernIntegration } = await import('./tavern');
