@@ -1,9 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
-export const GlobalStyles = () => (
+/**
+ * 优化的字体加载 - 使用 preload 替代阻塞的 @import
+ */
+const injectFontLinks = () => {
+  // 检查是否已注入
+  if (document.getElementById('engram-font-preload')) return;
+
+  const fonts = [
+    'https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap',
+    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap',
+  ];
+
+  fonts.forEach((href, index) => {
+    // 创建 preload link
+    const preload = document.createElement('link');
+    preload.rel = 'preload';
+    preload.as = 'style';
+    preload.href = href;
+    if (index === 0) preload.id = 'engram-font-preload';
+    document.head.appendChild(preload);
+
+    // 创建实际的 stylesheet link
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+};
+
+export const GlobalStyles = () => {
+  useEffect(() => {
+    injectFontLinks();
+  }, []);
+
+  return (
     <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
-    
     :root {
       --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -67,4 +99,6 @@ export const GlobalStyles = () => (
       scrollbar-width: none;
     }
   `}</style>
-);
+  );
+};
+

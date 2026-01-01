@@ -1,16 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-// Import Views
-import { Dashboard } from '@/views/Dashboard';
-import { GraphView } from '@/views/Graph';
-import { DevLog } from '@/views/DevLog';
-import { APIPresets } from '@/views/APIPresets/APIPresetsView';
-import { Settings } from '@/views/Settings';
-import { MemoryStream } from '@/views/MemoryStream';
-import { ProcessingView } from '@/views/Processing/ProcessingView';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { WelcomeAnimation } from '@/components/visual/WelcomeAnimation';
 import { SettingsManager } from '@/services/settings/Persistence';
+
+// 首屏视图同步导入
+import { Dashboard } from '@/views/Dashboard';
+
+// 非首屏视图懒加载 - 减少首屏 bundle 大小
+const GraphView = lazy(() => import('@/views/Graph').then(m => ({ default: m.GraphView })));
+const DevLog = lazy(() => import('@/views/DevLog').then(m => ({ default: m.DevLog })));
+const APIPresets = lazy(() => import('@/views/APIPresets/APIPresetsView').then(m => ({ default: m.APIPresets })));
+const Settings = lazy(() => import('@/views/Settings').then(m => ({ default: m.Settings })));
+const MemoryStream = lazy(() => import('@/views/MemoryStream').then(m => ({ default: m.MemoryStream })));
+const ProcessingView = lazy(() => import('@/views/Processing/ProcessingView').then(m => ({ default: m.ProcessingView })));
+
+// 懒加载 Loading 占位符
+const LoadingFallback = () => (
+    <div className="flex items-center justify-center h-full">
+        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+    </div>
+);
 
 
 
@@ -82,7 +92,9 @@ export const App: React.FC<AppProps> = ({ onClose }) => {
             )}
 
             <MainLayout activeTab={activeTab} setActiveTab={setActiveTab} onClose={onClose}>
-                {renderContent()}
+                <Suspense fallback={<LoadingFallback />}>
+                    {renderContent()}
+                </Suspense>
             </MainLayout>
         </ThemeProvider>
     );
