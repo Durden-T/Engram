@@ -27,4 +27,8 @@ npm-debug.log*
 docs/
 
 # Workspace
+# Workspace
 Engram_project.code-workspace
+
+# Scripts
+scripts/

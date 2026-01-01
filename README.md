@@ -1,73 +1,113 @@
 # Engram
 
-> 🧠 Graph RAG 记忆操作系统 - Where memories leave their trace.
+> **Graph RAG Memory Operation System** - *Where memories leave their trace.*
 
-Engram 是一个为 SillyTavern 设计的智能记忆扩展，通过图谱化的记忆存储和 RAG 检索技术，让 AI 角色拥有持久、可追溯的记忆能力。
+![Version](https://img.shields.io/badge/version-0.3.0-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
-## ✨ 功能特性
+**Engram** 是专为 **SillyTavern (酒馆)** 设计的下一代智能记忆扩展。它通过**知识图谱 (Knowledge Graph)** 和 **RAG (检索增强生成)** 技术，不仅提供直观的记忆可视化，更能让 AI 角色拥有持久、连贯且可追溯的记忆能力。
 
-- **记忆流** - 时间线形式展示所有记忆片段
-- **世界图谱** - 可视化角色、地点、事件之间的关联关系
-- **剧情总结** - 纯文本双层记忆总结系统，自动提炼关键剧情
-- **记忆操作** - 支持剧情总结、向量化存储、批量处理
-- **API 预设** - 灵活配置多种 LLM 接口
-- **UI 精修** - 更加现代化的界面设计与交互体验
-- **开发日志** - 实时查看扩展运行状态
+---
 
-## 📦 安装
+## 🛠️ 技术栈 (Tech Stack)
 
-### 方式一：直接下载
-1. 下载本仓库
-2. 将文件夹放入 `SillyTavern/public/scripts/extensions/third-party/`
-3. 运行 `npm install && npm run build`
-4. 重启/刷新 SillyTavern
+![React](https://img.shields.io/badge/React-20232a?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-bear?style=for-the-badge&color=orange)
+![Dexie](https://img.shields.io/badge/Dexie.js-323330?style=for-the-badge&logo=indexeddb&logoColor=white)
 
-### 方式二：Git 克隆
+---
+
+## ✨ 核心特性 (Features)
+
+- **Memory Stream (记忆流)**: 以时间轴形式直观展示所有记忆片段，支持重要度高亮。
+- **World Graph (世界图谱)**: 实时可视化的知识图谱，展示角色、地点、物品及事件之间的深层关联。
+- **Story Summary (剧情总结)**: 内置纯文本双层记忆总结系统，自动提炼关键剧情，防止上下文遗忘。
+- **Graph RAG (图谱检索)**: 基于图谱的混合检索与重排算法，比传统向量检索更精准。
+- **API Presets (API 预设)**: 灵活配置多种 LLM 接口，支持针对不同任务（总结、提取）使用不同模型。
+- **Modern UI (现代化界面)**: 采用 Glassmorphism 设计语言，配合流畅动画，提供原生应用级体验。
+- **Dev Log (开发日志)**: 内置实时日志查看器，方便调试与监控。
+
+---
+
+## 📦 安装 (Installation)
+
+### 方式一：扩展管理 (推荐)
+
+直接在 **SillyTavern** 的扩展管理界面安装：
+
+1. 打开扩展管理 (Extensions) -> **安装扩展 (Install Extension)**。
+2. 在 URL 栏输入本仓库地址：
+   ```
+   https://github.com/shiyue137mh-netizen/Engram
+   ```
+3. 点击 **获取 (Get)** 或 **安装 (Install)**。
+4. 安装完成后，刷新酒馆页面即可。
+
+> **注意**: 我们已将构建好的 `dist/` 目录上传至仓库，因此无需手动构建即可直接使用。
+
+### 方式二：Git 克隆 (开发者)
+
 ```bash
 cd SillyTavern/public/scripts/extensions/third-party/
 git clone https://github.com/shiyue137mh-netizen/Engram.git
 cd Engram
-npm install && npm run build
+# 如果仅使用，无需 npm install/build
 ```
 
-## 🛠️ 开发
+---
+
+## 💻 开发指南 (Development)
+
+如果您想参与开发或自行构建：
 
 ```bash
 # 安装依赖
 npm install
 
-# 构建
+# 启动 HMR 开发模式 (推荐)
+# 支持热更新，修改代码后无需刷新浏览器
+npm run dev
+
+# 生产环境构建
 npm run build
 
-# HMR 开发模式（推荐，修改代码后无需刷新页面，实时更新）
-npm run dev
-# 注意：停止 HMR 后需运行 npm run build 恢复正常文件
-
-# 传统开发模式（修改代码后自动构建，需手动刷新酒馆）
+# 传统监听模式
 npm run dev:watch
 ```
 
-## 📁 项目结构
+---
+
+## 📁 目录结构 (Project Structure)
 
 ```
 src/
-├── App.tsx              # 根组件
-├── index.tsx            # 入口文件
-├── constants/           # 常量配置
-├── core/                # 核心业务逻辑
-├── infrastructure/      # 基础设施层
-├── views/               # 视图组件
-└── styles/              # 样式文件
+├── assets/                # 静态资源 (icons, styles)
+├── components/            # 展示组件
+│   ├── ui/                # 原子组件 (Button, Switch...)
+│   ├── layout/            # 布局组件 (Header, Sidebar...)
+│   ├── visual/            # 视觉组件 (NeuralOrb...)
+│   └── common/            # 通用组件
+├── lib/                   # 基础设施 (logger, events)
+├── services/              # 核心业务逻辑
+│   ├── api/               # LLM API 交互
+│   ├── database/          # Dexie 数据库
+│   ├── summarizer/        # 总结服务
+│   ├── settings/          # 设置持久化
+│   └── updater/           # 更新检查
+├── tavern/                # SillyTavern 适配层 (Bridge, Context)
+├── types/                 # TypeScript 类型定义
+├── views/                 # 页面级视图 (Dashboard, Graph...)
+├── hooks/                 # React Hooks
+├── contexts/              # React Context
+├── constants/             # 常量配置
+└── utils/                 # 工具函数
 ```
 
-## 🔧 技术栈
+---
 
-- **React** - UI 框架
-- **TypeScript** - 类型安全
-- **Vite** - 构建工具
-- **Tailwind CSS** - 样式
-- **Lucide React** - 图标
+## 📄 开源协议 (License)
 
-## 📄 License
-
-MIT
+MIT License
