@@ -1,46 +1,23 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ThemeName, themes } from '../styles/themes';
-import { ThemeManager } from "@/services/ThemeManager";
+/**
+ * ThemeContext - 主题上下文
+ * 
+ * 内部使用 Zustand store，保持向后兼容的 Provider API
+ * 推荐直接使用 useThemeStore 以获得更好的性能
+ */
 
-interface ThemeContextType {
-    theme: ThemeName;
-    setTheme: (theme: ThemeName) => void;
-    isDarkMode: boolean;
-}
+import React from 'react';
+import { useThemeStore } from '@/stores/themeStore';
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    // Initialize state from Manager's current state
-    const [theme, setThemeState] = useState<ThemeName>(ThemeManager.getTheme());
-
-    const isDarkMode = theme !== 'paperLight';
-
-    // Sync React state -> Manager
-    const setTheme = (t: ThemeName) => {
-        ThemeManager.setTheme(t);
-        setThemeState(t);
-    };
-
-    // Ensure manager is in sync on mount (double check)
-    useEffect(() => {
-        const current = ThemeManager.getTheme();
-        if (current !== theme) {
-            setThemeState(current);
-        }
-    }, []);
-
-    return (
-        <ThemeContext.Provider value={{ theme, setTheme, isDarkMode }}>
-            {children}
-        </ThemeContext.Provider>
-    );
-}
-
+// 保持向后兼容的 hook
 export function useTheme() {
-    const context = useContext(ThemeContext);
-    if (context === undefined) {
-        throw new Error('useTheme must be used within a ThemeProvider');
-    }
-    return context;
+    const theme = useThemeStore(state => state.theme);
+    const setTheme = useThemeStore(state => state.setTheme);
+    const isDarkMode = useThemeStore(state => state.isDarkMode);
+    return { theme, setTheme, isDarkMode };
 }
+
+// ThemeProvider 现在只是透传 children，实际状态由 Zustand 管理
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    return <>{children}</>;
+}
+

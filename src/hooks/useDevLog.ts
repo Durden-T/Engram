@@ -1,24 +1,16 @@
 /**
  * useDevLog - 开发日志管理 Hook
  * 
- * 将 DevLog 视图中的状态管理逻辑抽离出来。
+ * 内部使用 Zustand store，保持原有 API 向后兼容
+ * 推荐直接使用 useDevLogStore 以获得更好的性能
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { Logger, LogEntry, LogLevel } from "@/lib/logger";
+import { useDevLogStore, selectFilteredLogs } from '@/stores/devLogStore';
 
-// 模块列表（用于过滤）
-export const LOG_MODULES = [
-    'ALL',
-    'Logger',
-    'EventBus',
-    'Summarizer',
-    'CORE/Pipeline',
-    'CORE/RAG',
-    'CORE/Memory',
-    'UI/GraphView',
-    'UI/MemoryStream',
-];
+// 重新导出模块列表
+export { LOG_MODULES } from '@/stores/devLogStore';
 
 export interface UseDevLogReturn {
     // 状态
@@ -43,12 +35,26 @@ export interface UseDevLogReturn {
 }
 
 export function useDevLog(): UseDevLogReturn {
-    const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [levelFilter, setLevelFilter] = useState<LogLevel | -1>(-1);
-    const [moduleFilter, setModuleFilter] = useState('ALL');
-    const [autoScroll, setAutoScroll] = useState(true);
+    // 使用 Zustand store
+    const logs = useDevLogStore(state => state.logs);
+    const searchQuery = useDevLogStore(state => state.searchQuery);
+    const levelFilter = useDevLogStore(state => state.levelFilter);
+    const moduleFilter = useDevLogStore(state => state.moduleFilter);
+    const autoScroll = useDevLogStore(state => state.autoScroll);
+
+    const addLog = useDevLogStore(state => state.addLog);
+    const setLogs = useDevLogStore(state => state.setLogs);
+    const clearLogsStore = useDevLogStore(state => state.clearLogs);
+    const setSearchQuery = useDevLogStore(state => state.setSearchQuery);
+    const setLevelFilter = useDevLogStore(state => state.setLevelFilter);
+    const setModuleFilter = useDevLogStore(state => state.setModuleFilter);
+    const toggleAutoScroll = useDevLogStore(state => state.toggleAutoScroll);
+
+    // 计算过滤后的日志
+    const filteredLogs = useMemo(() =>
+        selectFilteredLogs({ logs, searchQuery, levelFilter, moduleFilter }),
+        [logs, searchQuery, levelFilter, moduleFilter]
+    );
 
     const terminalRef = useRef<HTMLDivElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -57,37 +63,10 @@ export function useDevLog(): UseDevLogReturn {
     useEffect(() => {
         setLogs(Logger.getLogs());
         const unsubscribe = Logger.subscribe((entry) => {
-            setLogs((prev) => [...prev, entry]);
+            addLog(entry);
         });
         return () => unsubscribe();
-    }, []);
-
-    // 过滤日志
-    useEffect(() => {
-        let result = logs;
-
-        // 按级别过滤
-        if (levelFilter !== -1) {
-            result = result.filter((log) => log.level >= levelFilter);
-        }
-
-        // 按模块过滤
-        if (moduleFilter !== 'ALL') {
-            result = result.filter((log) => log.module.startsWith(moduleFilter));
-        }
-
-        // 按关键词搜索
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(
-                (log) =>
-                    log.message.toLowerCase().includes(query) ||
-                    log.module.toLowerCase().includes(query)
-            );
-        }
-
-        setFilteredLogs(result);
-    }, [logs, levelFilter, moduleFilter, searchQuery]);
+    }, [setLogs, addLog]);
 
     // 自动滚动到底部
     useEffect(() => {
@@ -99,8 +78,8 @@ export function useDevLog(): UseDevLogReturn {
     // 清空日志
     const clearLogs = useCallback(async () => {
         await Logger.clear();
-        setLogs([]);
-    }, []);
+        clearLogsStore();
+    }, [clearLogsStore]);
 
     // 导出日志
     const exportLogs = useCallback(() => {
@@ -116,11 +95,6 @@ export function useDevLog(): UseDevLogReturn {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }, []);
-
-    // 切换自动滚动
-    const toggleAutoScroll = useCallback(() => {
-        setAutoScroll((prev) => !prev);
     }, []);
 
     return {
@@ -140,3 +114,4 @@ export function useDevLog(): UseDevLogReturn {
         exportLogs,
     };
 }
+
