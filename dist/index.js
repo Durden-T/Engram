@@ -23825,10 +23825,9 @@ class w2 {
    * @param metadata 元数据
    */
   formatAsWorldEntry(r, l) {
-    new Date(l.timestamp).toLocaleDateString("zh-CN");
-    let u = `📜 剧情摘要 [楼层${`${l.floorRange[0]}-${l.floorRange[1]}`}]
+    let s = `📜 剧情摘要 [楼层${`${l.floorRange[0]}-${l.floorRange[1]}`}]
 `;
-    return u += r, u;
+    return s += r, s;
   }
   /**
    * 提取纯文本（移除所有格式标记）
@@ -23889,8 +23888,6 @@ class j2 {
             { role: "system", content: r.systemPrompt },
             { role: "user", content: r.userPrompt }
           ]
-          // 如果指定了预设 ID，可以在这里配置
-          // custom_api: request.presetId ? await this.getPresetConfig(request.presetId) : undefined,
         });
       else if (l.generate)
         a = await l.generate({

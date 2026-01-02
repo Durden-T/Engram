@@ -1,6 +1,6 @@
 import { Logger } from '@/lib/logger';
 import type { PromptTemplate, PromptCategory, EngramAPISettings } from '@/services/api/types';
-import type { RegexRule } from '@/services/summarizer/RegexProcessor';
+import type { RegexRule } from '@/services/pipeline/RegexProcessor';
 
 export interface EngramSettings {
     theme: string;

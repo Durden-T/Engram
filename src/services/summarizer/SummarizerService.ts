@@ -10,9 +10,9 @@
  */
 
 import { EventBus, TavernEventType, MessageService, WorldInfoService } from "@/tavern/api";
-import { TextProcessor, textProcessor } from './TextProcessor';
-import { LLMAdapter, llmAdapter } from './LLMAdapter';
-import { RegexProcessor, regexProcessor } from './RegexProcessor';
+import { TextProcessor, textProcessor } from '@/services/pipeline/TextProcessor';
+import { LLMAdapter, llmAdapter } from '@/services/api/LLMAdapter';
+import { RegexProcessor, regexProcessor } from '@/services/pipeline/RegexProcessor';
 import { Logger } from "@/lib/logger";
 import { ModelLogger } from "@/lib/logger/ModelLogger";
 import { notificationService } from '@/services/NotificationService';

@@ -3,8 +3,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Play, Info } from 'lucide-react';
-import type { RegexRule, RegexScope } from '@/services/summarizer/RegexProcessor';
-import { RegexProcessor, REGEX_SCOPE_OPTIONS } from '@/services/summarizer/RegexProcessor';
+import type { RegexRule, RegexScope } from '@/services/pipeline/RegexProcessor';
+import { RegexProcessor, REGEX_SCOPE_OPTIONS } from '@/services/pipeline/RegexProcessor';
 
 interface RegexRuleFormProps {
     rule: RegexRule;
@@ -86,8 +86,8 @@ export const RegexRuleForm: React.FC<RegexRuleFormProps> = ({ rule, onChange }) 
                             <button
                                 key={opt.value}
                                 className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${rule.scope === opt.value
-                                        ? 'bg-primary-20 border-primary text-primary'
-                                        : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                                    ? 'bg-primary-20 border-primary text-primary'
+                                    : 'bg-background border-border text-muted-foreground hover:bg-muted'
                                     }`}
                                 onClick={() => onChange({ scope: opt.value })}
                                 title={opt.description}

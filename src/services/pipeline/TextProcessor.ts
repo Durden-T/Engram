@@ -2,6 +2,8 @@
  * TextProcessor - 文本处理工具
  * 
  * 提供 LLM 输出清洗、格式化等功能
+ * 
+ * 通用管道组件：可被多个模块复用
  */
 
 /** 正则替换规则 */
@@ -67,8 +69,6 @@ export class TextProcessor {
             characterName?: string;
         }
     ): string {
-        const date = new Date(metadata.timestamp);
-        const dateStr = date.toLocaleDateString('zh-CN');
         const floorStr = `${metadata.floorRange[0]}-${metadata.floorRange[1]}`;
 
         // 使用简洁格式，避免浪费 Token

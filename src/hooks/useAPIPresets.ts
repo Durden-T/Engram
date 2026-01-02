@@ -18,7 +18,7 @@ import {
     getDefaultAPISettings,
     createDefaultLLMPreset,
 } from '@/services/api/types';
-import { RegexRule, DEFAULT_REGEX_RULES } from '@/services/summarizer/RegexProcessor';
+import { RegexRule, DEFAULT_REGEX_RULES } from '@/services/pipeline/RegexProcessor';
 import { SettingsManager } from "@/services/settings/Persistence";
 import { WorldBookStateService } from "@/tavern/WorldBookState";
 import { WorldInfoService } from '@/tavern/api/WorldInfo';

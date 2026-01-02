@@ -10,8 +10,8 @@
  */
 
 import { WorldInfoService, WorldInfoEntry, SUMMARY_ENTRY_KEY } from '@/tavern/api/WorldInfo';
-import { LLMAdapter, llmAdapter } from './LLMAdapter';
-import { RegexProcessor, regexProcessor } from './RegexProcessor';
+import { LLMAdapter, llmAdapter } from '@/services/api/LLMAdapter';
+import { RegexProcessor, regexProcessor } from '@/services/pipeline/RegexProcessor';
 import { Logger } from "@/lib/logger";
 import { ModelLogger } from "@/lib/logger/ModelLogger";
 import { notificationService } from '@/services/NotificationService';

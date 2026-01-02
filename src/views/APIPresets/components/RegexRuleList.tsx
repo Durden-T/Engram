@@ -1,6 +1,6 @@
 import React from 'react';
 import { Regex, Trash2, Power } from 'lucide-react';
-import type { RegexRule } from '@/services/summarizer/RegexProcessor';
+import type { RegexRule } from '@/services/pipeline/RegexProcessor';
 
 interface RegexRuleListProps {
     rules: RegexRule[];

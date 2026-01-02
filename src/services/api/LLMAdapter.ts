@@ -2,9 +2,35 @@
  * LLMAdapter - LLM 调用适配器
  * 
  * 封装对 SillyTavern/TavernHelper LLM API 的调用
+ * 
+ * 通用服务：可被 Summarizer、RAG、Graph 等模块复用
  */
 
-import type { LLMRequest, LLMResponse } from './types';
+/** LLM 生成请求 */
+export interface LLMRequest {
+    /** 系统提示词 */
+    systemPrompt: string;
+    /** 用户提示词 */
+    userPrompt: string;
+    /** 预设 ID */
+    presetId?: string;
+}
+
+/** LLM 生成响应 */
+export interface LLMResponse {
+    /** 生成内容 */
+    content: string;
+    /** 是否成功 */
+    success: boolean;
+    /** 错误信息 */
+    error?: string;
+    /** Token 使用量 */
+    tokenUsage?: {
+        prompt: number;
+        completion: number;
+        total: number;
+    };
+}
 
 /**
  * 获取 TavernHelper API
@@ -51,8 +77,6 @@ export class LLMAdapter {
                         { role: 'system', content: request.systemPrompt },
                         { role: 'user', content: request.userPrompt },
                     ],
-                    // 如果指定了预设 ID，可以在这里配置
-                    // custom_api: request.presetId ? await this.getPresetConfig(request.presetId) : undefined,
                 });
             } else if (helper.generate) {
                 // fallback: 使用 generate
