@@ -30,13 +30,10 @@ const Header: React.FC<HeaderProps> = ({
                     <Menu size={20} />
                 </button>
 
-                {/* Logo - Adaptive visibility */}
-                <div className="flex items-center gap-2">
-                    <div className="md:hidden"><EngramIcon size={24} className="text-primary" /></div>
-                    <div className="hidden md:flex items-center gap-2">
-                        <EngramIcon size={20} className="text-primary" />
-                        <span className="font-semibold text-sidebar-foreground tracking-tight">Engram</span>
-                    </div>
+                {/* Logo - PC 端显示图形+文字 */}
+                <div className="hidden md:flex items-center gap-2">
+                    <EngramIcon size={20} className="text-primary" />
+                    <span className="font-semibold text-sidebar-foreground tracking-tight">Engram</span>
                 </div>
             </div>
 
