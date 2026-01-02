@@ -102,6 +102,7 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                                     onDelete={() => onDelete(template)}
                                     onToggleEnabled={(enabled) => handleToggleEnabled(template, enabled)}
                                     onImport={handleImport}
+                                    onResetToDefault={(resetTemplate) => onUpdate(resetTemplate)}
                                 />
                             ))}
                         </div>

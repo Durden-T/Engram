@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import { FileText, Copy, Trash2, Download, Upload, Check, Power } from 'lucide-react';
+import { FileText, Copy, Trash2, Download, Upload, Check, Power, RotateCcw } from 'lucide-react';
 import type { PromptTemplate, PromptCategory, PromptTemplateSingleExport } from '@/services/api/types';
-import { PROMPT_CATEGORIES, createPromptTemplate } from '@/services/api/types';
+import { PROMPT_CATEGORIES, createPromptTemplate, getBuiltInTemplateByCategory } from '@/services/api/types';
 
 interface PromptTemplateCardProps {
     template: PromptTemplate;
@@ -11,6 +11,7 @@ interface PromptTemplateCardProps {
     onDelete?: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
     onImport?: (template: PromptTemplate) => void;
+    onResetToDefault?: (template: PromptTemplate) => void;
 }
 
 /**
@@ -46,6 +47,7 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
     onDelete,
     onToggleEnabled,
     onImport,
+    onResetToDefault,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -181,6 +183,26 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 <button className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" onClick={handleImportClick} title="Import"><Upload size={12} /></button>
                 <button className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" onClick={handleExport} title="Export"><Download size={12} /></button>
                 <button className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors" onClick={(e) => { e.stopPropagation(); onCopy?.(); }} title="Copy"><Copy size={12} /></button>
+                {template.isBuiltIn && (
+                    <button
+                        className="p-1.5 hover:bg-amber-500/10 rounded text-muted-foreground hover:text-amber-500 transition-colors"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const defaultTemplate = getBuiltInTemplateByCategory(template.category);
+                            if (defaultTemplate && onResetToDefault) {
+                                // 保留当前模板的 ID 和 enabled 状态，替换内容
+                                onResetToDefault({
+                                    ...defaultTemplate,
+                                    id: template.id,
+                                    enabled: template.enabled,
+                                });
+                            }
+                        }}
+                        title="恢复默认"
+                    >
+                        <RotateCcw size={12} />
+                    </button>
+                )}
                 {!template.isBuiltIn && (
                     <button className="p-1.5 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors" onClick={(e) => { e.stopPropagation(); onDelete?.(); }} title="Delete"><Trash2 size={12} /></button>
                 )}

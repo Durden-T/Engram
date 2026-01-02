@@ -20,6 +20,7 @@ import { revisionService } from '@/services/RevisionService';
 import { getCurrentCharacter, getCurrentModel } from '@/tavern/context';
 import type { TrimConfig, TrimTriggerType } from '../api/types';
 import { DEFAULT_TRIM_CONFIG } from '../api/types';
+import { getBuiltInTemplateByCategory } from '@/services/api/types';
 
 /** 精简服务配置 */
 export interface TrimmerConfig extends TrimConfig {
@@ -299,10 +300,11 @@ export class TrimmerService {
                 })
                 .join('\n\n---\n\n');
 
-            // 获取提示词模板
+            // 获取提示词模板（优先从 APIPresets 获取，fallback 使用内置模板）
             const template = SettingsManager.getEnabledPromptTemplate('trim');
-            const systemPrompt = template?.systemPrompt || FALLBACK_TRIM_PROMPT.system;
-            const userPromptTemplate = template?.userPromptTemplate || FALLBACK_TRIM_PROMPT.user;
+            const fallbackTemplate = getBuiltInTemplateByCategory('trim');
+            const systemPrompt = template?.systemPrompt || fallbackTemplate?.systemPrompt || '';
+            const userPromptTemplate = template?.userPromptTemplate || fallbackTemplate?.userPromptTemplate || '';
 
             // 构建用户提示词
             const userPrompt = userPromptTemplate

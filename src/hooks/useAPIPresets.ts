@@ -72,6 +72,41 @@ export interface UseAPIPresetsReturn {
     save: () => void;
 }
 
+/**
+ * 合并提示词模板
+ * - 对于内置模板：如果用户保存了同 category 的内置模板，使用用户版本（保留修改）
+ * - 如果用户版本不存在，使用默认版本
+ * - 所有非内置的用户自定义模板都保留
+ */
+function mergePromptTemplates(
+    defaultTemplates: PromptTemplate[],
+    savedTemplates: PromptTemplate[]
+): PromptTemplate[] {
+    const result: PromptTemplate[] = [];
+
+    // 处理每个默认内置模板
+    for (const defaultTemplate of defaultTemplates.filter(t => t.isBuiltIn)) {
+        // 查找用户保存的同 category 内置模板
+        const savedBuiltIn = savedTemplates.find(
+            t => t.isBuiltIn && t.category === defaultTemplate.category
+        );
+
+        if (savedBuiltIn) {
+            // 使用用户保存的版本（保留了用户的修改：启用状态、内容等）
+            result.push(savedBuiltIn);
+        } else {
+            // 没有保存过，使用默认版本
+            result.push(defaultTemplate);
+        }
+    }
+
+    // 添加所有非内置的用户自定义模板
+    const customTemplates = savedTemplates.filter(t => !t.isBuiltIn);
+    result.push(...customTemplates);
+
+    return result;
+}
+
 export function useAPIPresets(): UseAPIPresetsReturn {
     // 配置状态
     const [settings, setSettings] = useState<EngramAPISettings>(getDefaultAPISettings);
@@ -127,11 +162,11 @@ export function useAPIPresets(): UseAPIPresetsReturn {
                 llmPresets: savedAPISettings.llmPresets?.length > 0
                     ? savedAPISettings.llmPresets
                     : defaultSettings.llmPresets,
-                // 合并模板：内置模板 + 用户自定义模板
-                promptTemplates: [
-                    ...defaultSettings.promptTemplates.filter(t => t.isBuiltIn),
-                    ...(savedAPISettings.promptTemplates || []).filter((t: PromptTemplate) => !t.isBuiltIn),
-                ],
+                // 合并模板：保留用户对内置模板的修改，同时添加用户自定义模板
+                promptTemplates: mergePromptTemplates(
+                    defaultSettings.promptTemplates,
+                    savedAPISettings.promptTemplates || []
+                ),
             };
             setSettings(mergedSettings);
         }

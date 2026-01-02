@@ -411,6 +411,15 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
   ];
 }
 
+/**
+ * 通过分类获取内置模板的默认值
+ * @param category 模板分类
+ * @returns 内置模板的默认值，如果不存在返回 null
+ */
+export function getBuiltInTemplateByCategory(category: PromptCategory): PromptTemplate | null {
+  return getBuiltInPromptTemplates().find(t => t.category === category) || null;
+}
+
 
 /**
  * 默认世界书配置

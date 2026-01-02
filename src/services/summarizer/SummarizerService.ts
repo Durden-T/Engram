@@ -28,6 +28,7 @@ import type {
     SummarizeRequest,
 } from './types';
 import { DEFAULT_SUMMARIZER_CONFIG } from './types';
+import { getBuiltInTemplateByCategory } from '@/services/api/types';
 
 /** 备用总结提示词模板（APIPresets 无启用模板时使用） */
 const FALLBACK_SUMMARY_PROMPT = {
@@ -609,10 +610,11 @@ export class SummarizerService {
                 this.log('warn', '获取世界书失败', { error: String(e) });
             }
 
-            // 3. 获取提示词模板（优先从 APIPresets 获取）
+            // 3. 获取提示词模板（优先从 APIPresets 获取，fallback 使用内置模板）
             const template = SettingsManager.getEnabledPromptTemplate('text_summary');
-            const systemPrompt = template?.systemPrompt || FALLBACK_SUMMARY_PROMPT.system;
-            const userPromptTemplate = template?.userPromptTemplate || FALLBACK_SUMMARY_PROMPT.user;
+            const fallbackTemplate = getBuiltInTemplateByCategory('text_summary');
+            const systemPrompt = template?.systemPrompt || fallbackTemplate?.systemPrompt || '';
+            const userPromptTemplate = template?.userPromptTemplate || fallbackTemplate?.userPromptTemplate || '';
 
             // 获取所有 Engram 摘要内容（用于精简功能）
             let engramSummaries = '';
