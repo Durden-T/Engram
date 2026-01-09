@@ -24,12 +24,10 @@ npm-debug.log*
 *.temp
 
 # Documentation
-docs
 
 # Workspace
 # Workspace
 Engram_project.code-workspace
 
 # Scripts and test
-scripts
 test

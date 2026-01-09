@@ -1,69 +1,19 @@
 /**
- * Core Graph Data Types for Engram V0.4.0
+ * Core Graph Data Types for Engram V0.6
  *
- * Defines the unified data model for the dual-track memory system.
+ * Multi-Database Architecture:
+ * Each chat_id has its own database, so scope_id is no longer needed.
  */
-
-/**
- * Scope - Memory Container
- *
- * V0.5: 简化绑定 - 仅使用 chat_id 作为主键
- * character_name 仅用于 UI 显示，不参与数据分割
- */
-export interface Scope {
-    /** Auto-increment ID (Dexie primary key) */
-    id?: number;
-
-    /** Unique String ID (UUID) for lookup */
-    uuid: string;
-
-    /**
-     * SillyTavern Chat ID (UUID from metadata)
-     * 这是镜像/绑定的主键，每个聊天记录有唯一的 chat_id
-     */
-    chat_id: string;
-
-    /**
-     * 角色名称 (仅用于显示)
-     * 存储创建 Scope 时的角色名，不参与数据分割逻辑
-     */
-    character_name: string;
-
-    /**
-     * Persistent Execution State
-     * Replaces WorldBook metadata for keeping track of progress.
-     */
-    state: {
-        /** The last floor index (1-based) that was successfully summarized */
-        last_summarized_floor: number;
-
-        /** Accumulated token usage since last compression */
-        token_usage_accumulated: number;
-
-        /** Timestamp/Floor of the last compression event */
-        last_compressed_at: number;
-
-        /**
-         * The active WorldBook entry order.
-         * Important for "Basic Mode" (No-RAG) to implement rolling updates.
-         */
-        active_summary_order: number;
-    };
-
-    created_at: number;
-    last_active_at: number;
-}
 
 /**
  * EventNode - The atom of memory
  * Represents a single processed event, either from raw chat or higher-level summary.
+ *
+ * V0.6: 移除 scope_id - 每个聊天有独立数据库，不需要分区字段
  */
 export interface EventNode {
     /** UUID */
     id: string;
-
-    /** Foreign Key -> Scope.id */
-    scope_id: number;
 
     /**
      * Burn-in Text (For Model)
@@ -117,13 +67,11 @@ export interface EventNode {
 /**
  * EntityNode - Graph Entities
  * Represents static or slowly changing entities (People, Places, Items).
+ *
+ * V0.6: 移除 scope_id - 每个聊天有独立数据库
  */
 export interface EntityNode {
     id: string;
-
-    /** Foreign Key -> Scope.id */
-    scope_id: number;
-
     name: string;
     type: string; // 'Character' | 'Location' | 'Item' | 'Concept'
     description: string;
@@ -133,3 +81,37 @@ export interface EntityNode {
 
     last_updated_at: number;
 }
+
+/**
+ * @deprecated V0.6: Scope 不再需要 - 每个聊天有独立数据库
+ * 状态信息存储在 meta 表中
+ */
+export interface Scope {
+    id?: number;
+    uuid: string;
+    chat_id: string;
+    character_name: string;
+    state: ScopeState;
+    created_at: number;
+    last_active_at: number;
+}
+
+/**
+ * ScopeState - 存储在 meta 表中
+ */
+export interface ScopeState {
+    last_summarized_floor: number;
+    token_usage_accumulated: number;
+    last_compressed_at: number;
+    active_summary_order: number;
+}
+
+/**
+ * 默认 ScopeState
+ */
+export const DEFAULT_SCOPE_STATE: ScopeState = {
+    last_summarized_floor: 0,
+    token_usage_accumulated: 0,
+    last_compressed_at: 0,
+    active_summary_order: 9000,
+};

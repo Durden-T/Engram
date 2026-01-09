@@ -1,21 +1,15 @@
 /**
  * Injector Service
  *
- * Responsible for:
- * 1. Listening to Chat Events
- * 2. Triggering Retrieval
- * 3. Updating the Dynamic Context WorldInfo Entry
+ * V0.6: 使用宏而非世界书条目进行 RAG 注入
+ * 监听消息事件，触发检索并更新 {{engramRAGSummaries}} 宏缓存
  */
 
 import { EventBus, TavernEventType } from '@/tavern/api';
-import { getCurrentChatId, getCurrentCharacter } from '@/tavern/context';
-import { WorldInfoService } from '@/tavern/api/WorldInfo';
-import { scopeManager } from '@/services/database/ScopeManager';
+import { getCurrentChatId } from '@/tavern/context';
 import { retriever } from './Retriever';
+import { MacroService } from '@/tavern/MacroService';
 import { Logger } from '@/lib/logger';
-
-const DYNAMIC_ENTRY_NAME = '[Engram] Dynamic Context';
-const DYNAMIC_ENTRY_KEY = '[Engram_Dynamic_Context]'; // Unlikely to be typed by user, mostly for internal ID
 
 export class Injector {
     private isInitialized = false;
@@ -28,79 +22,56 @@ export class Injector {
 
         // Hook into relevant events
         EventBus.on(TavernEventType.MESSAGE_RECEIVED, this.handleMessageReceived.bind(this));
-        EventBus.on(TavernEventType.CHAT_CHANGED, this.refreshContext.bind(this));
+        EventBus.on(TavernEventType.CHAT_CHANGED, this.handleChatChanged.bind(this));
 
         this.isInitialized = true;
         console.log('[Injector] Initialized.');
     }
 
     /**
-     * Handle new user message
+     * Handle new user message - trigger RAG retrieval
      */
     private async handleMessageReceived() {
-        // When a message is received (from user), we prepare the context for the AI's response.
-        await this.refreshContext();
+        await this.refreshRAGContext();
     }
 
     /**
-     * Refresh the Dynamic Context Entry
+     * Handle chat change - clear RAG cache
      */
-    public async refreshContext() {
+    private handleChatChanged() {
+        // 切换聊天时清空 RAG 缓存
+        MacroService.updateRAGCache('');
+    }
+
+    /**
+     * Refresh RAG Context - 检索相关记忆并更新宏缓存
+     */
+    public async refreshRAGContext() {
         try {
             const chatId = getCurrentChatId();
-            const char = getCurrentCharacter();
-            const characterName = char?.name || 'Unknown';
-
             if (!chatId) {
                 return;
             }
 
-            // 1. Resolve Scope (V0.5: 仅用 chatId)
-            const scope = await scopeManager.resolveScope(chatId, characterName);
+            // 使用 retriever 检索相关记忆
+            const retrievalResult = await retriever.search('');
 
-            // 2. Retrieve
-            // TODO: Get the actual last query? For now, we use Rolling Search which mostly ignores query.
-            const retrievalResult = await retriever.search('', scope);
-
-            // 3. Format Content
-            // We combine entries into a single block
-            const contextText = retrievalResult.entries.length > 0
-                ? `<engram_memory>\n${retrievalResult.entries.join('\n')}\n</engram_memory>`
-                : ''; // Empty if no context
-
-            // 4. Update WorldInfo
-            const worldbookName = await WorldInfoService.getOrCreateWorldbook();
-            if (!worldbookName) return;
-
-            // Check if entry exists
-            let entry = await WorldInfoService.findEntryByKey(worldbookName, DYNAMIC_ENTRY_KEY);
-
-            if (entry) {
-                // Update existing
-                // Only update if content changed to save write ops?
-                // For now, just update.
-                await WorldInfoService.updateEntry(worldbookName, entry.uid, {
-                    content: contextText,
-                    enabled: !!contextText // Disable if empty
-                });
-            } else if (contextText) {
-                // Create new if content exists
-                await WorldInfoService.createEntry(worldbookName, {
-                    name: DYNAMIC_ENTRY_NAME,
-                    content: contextText,
-                    keys: [DYNAMIC_ENTRY_KEY],
-                    constant: true, // Always active
-                    position: 'before_character_definition', // High priority
-                    order: 9999, // Ensure it's near the end of high priority stuff? Or top?
-                });
+            // 如果没有事件，清空 RAG 缓存
+            if (retrievalResult.entries.length === 0) {
+                MacroService.updateRAGCache('');
+                return;
             }
 
-            if (contextText) {
-                console.log('[Injector] Dynamic Context Updated.', { length: contextText.length });
-            }
+            // 格式化并更新宏缓存
+            const contextText = `<engram_rag>\n${retrievalResult.entries.join('\n')}\n</engram_rag>`;
+            MacroService.updateRAGCache(contextText);
+
+            Logger.debug('Injector', 'RAG 缓存已更新', {
+                entryCount: retrievalResult.entries.length
+            });
 
         } catch (e) {
-            console.error('[Injector] Failed to refresh context:', e);
+            console.error('[Injector] Failed to refresh RAG context:', e);
         }
     }
 }

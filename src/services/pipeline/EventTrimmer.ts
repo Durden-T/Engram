@@ -1,17 +1,20 @@
 /**
  * EventTrimmer - IndexedDB 事件精简服务
  *
- * V0.5 架构：专门处理 IndexedDB 中的 EventNode 精简
- * 取代旧的 TrimmerService 中的 WorldBook 操作
+ * V0.6: 直接调用 llmAdapter，不再依赖 Extractor
  */
 
 import { useMemoryStore } from '@/stores/memoryStore';
-import { extractor, ExtractedEvent } from '@/services/pipeline/Extractor';
 import { MacroService } from '@/tavern/MacroService';
 import { Logger } from '@/lib/logger';
 import { notificationService } from '@/services/NotificationService';
 import { revisionService } from '@/services/RevisionService';
+import { llmAdapter } from '@/services/api';
+import { RobustJsonParser } from '@/utils/JsonParser';
 import type { EventNode } from '@/services/types/graph';
+
+// 精简 Prompt 模板
+import trimPromptRaw from '@/services/api/prompts/trim.md?raw';
 
 export interface TrimConfig {
     /** 保留最近 N 条不合并 */
@@ -32,6 +35,22 @@ export interface TrimResult {
     deletedCount: number;
     /** 原始事件 ID 列表 */
     sourceEventIds: string[];
+}
+
+/** JSON 响应格式 */
+interface TrimResponse {
+    events: Array<{
+        summary: string;
+        meta: {
+            time_anchor?: string;
+            role?: string[];
+            location?: string;
+            event?: string;
+            logic?: string[];
+            causality?: string;
+        };
+        significance_score: number;
+    }>;
 }
 
 /**
@@ -95,20 +114,28 @@ export class EventTrimmer {
             // 2. 组装待精简的文本 (烧录格式)
             const inputText = this.formatEventsForTrim(eventsToMerge);
 
-            // 3. 调用 LLM 压缩 (复用 Extractor)
-            const extractedEvents = await extractor.extract([{
-                role: 'user',
-                content: `请将以下多条事件记录精简合并：\n\n${inputText}`
-            }]);
+            // 3. 调用 LLM 压缩 (V0.6: 直接调用 llmAdapter)
+            const response = await llmAdapter.generate({
+                systemPrompt: trimPromptRaw,
+                userPrompt: `请将以下多条事件记录精简合并为更少的事件：\n\n${inputText}`
+            });
 
-            if (!extractedEvents || extractedEvents.length === 0) {
-                Logger.error('EventTrimmer', 'LLM 返回空结果');
-                notificationService.error('精简失败：LLM 返回空结果', 'Engram');
+            if (!response.success || !response.content) {
+                Logger.error('EventTrimmer', 'LLM 调用失败', { error: response.error });
+                notificationService.error('精简失败：LLM 调用失败', 'Engram');
                 return null;
             }
 
-            // 4. 预览确认 (如果启用)
-            let finalSummary = extractedEvents.map(e => e.summary).join('\n\n');
+            // 4. 解析 JSON
+            const parsed = RobustJsonParser.parse<TrimResponse>(response.content);
+            if (!parsed || !parsed.events || parsed.events.length === 0) {
+                Logger.error('EventTrimmer', 'JSON 解析失败或无事件');
+                notificationService.error('精简失败：无法解析结果', 'Engram');
+                return null;
+            }
+
+            // 5. 预览确认 (如果启用)
+            let finalSummary = parsed.events.map(e => e.summary).join('\n\n');
             if (this.config.previewEnabled) {
                 try {
                     finalSummary = await revisionService.requestRevision(
@@ -123,21 +150,14 @@ export class EventTrimmer {
                 }
             }
 
-            // 5. 保存新的合并事件
-            const scope = store.currentScope;
-            if (!scope?.id) {
-                throw new Error('No current scope');
-            }
-
-            // 使用第一个提取的事件的 meta 作为合并后的 meta
-            const firstExtracted = extractedEvents[0];
+            // 6. 保存新的合并事件
+            const firstParsed = parsed.events[0];
             const newEvent = await store.saveEvent({
-                scope_id: scope.id,
                 summary: finalSummary,
                 structured_kv: {
-                    time_anchor: firstExtracted.meta.time_anchor || '',
+                    time_anchor: firstParsed.meta.time_anchor || '',
                     role: this.mergeArrays(eventsToMerge.map(e => e.structured_kv.role)),
-                    location: firstExtracted.meta.location,
+                    location: firstParsed.meta.location || '',
                     event: '精简合并',
                     logic: this.mergeArrays(eventsToMerge.map(e => e.structured_kv.logic)),
                     causality: 'Chain'
@@ -150,11 +170,11 @@ export class EventTrimmer {
                 }
             });
 
-            // 6. 删除原始事件
+            // 7. 删除原始事件
             const sourceEventIds = eventsToMerge.map(e => e.id);
             await store.deleteEvents(sourceEventIds);
 
-            // 7. 刷新宏缓存
+            // 8. 刷新宏缓存
             await MacroService.refreshCache();
 
             Logger.success('EventTrimmer', '精简完成', {

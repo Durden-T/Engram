@@ -34,18 +34,18 @@ export class MacroService {
                 'Engram: 当前聊天的所有事件摘要 (从 IndexedDB)'
             );
 
-            // 2. {{engramContext}} - 动态上下文 (RAG 检索结果)
+            // 2. {{engramRAGSummaries}} - 动态 RAG 检索结果
             context.registerMacro(
-                'engramContext',
+                'engramRAGSummaries',
                 () => {
-                    return MacroService.cachedContext;
+                    return MacroService.cachedRAGSummaries;
                 },
-                'Engram: 动态上下文 (RAG 检索的记忆片段)'
+                'Engram: RAG 检索到的相关记忆片段'
             );
 
             this.isInitialized = true;
             Logger.success('MacroService', '全局宏已注册', {
-                macros: ['{{engramSummaries}}', '{{engramContext}}']
+                macros: ['{{engramSummaries}}', '{{engramRAGSummaries}}']
             });
 
             // 初始化缓存
@@ -67,7 +67,7 @@ export class MacroService {
 
     // --- 缓存 ---
     private static cachedSummaries: string = '';
-    private static cachedContext: string = '';
+    private static cachedRAGSummaries: string = '';
 
     /**
      * 刷新缓存 - 从 IndexedDB 读取事件摘要
@@ -86,9 +86,9 @@ export class MacroService {
     }
 
     /**
-     * 更新动态上下文缓存 (由 Injector 调用)
+     * 更新 RAG 检索结果缓存 (由 Injector 调用)
      */
-    static updateContextCache(content: string): void {
-        this.cachedContext = content;
+    static updateRAGCache(content: string): void {
+        this.cachedRAGSummaries = content;
     }
 }

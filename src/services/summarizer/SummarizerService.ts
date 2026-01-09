@@ -366,6 +366,10 @@ export class SummarizerService {
         });
 
         try {
+            // 1. 确保 WorldBook 槽位条目存在 (懒初始化)
+            const { WorldBookSlotService } = await import('@/services/WorldBookSlotService');
+            await WorldBookSlotService.init();
+
             // 2. 检查是否有新内容需要总结
             // 使用 bufferSize 来计算
             const startFloor = this._lastSummarizedFloor + 1;
@@ -565,17 +569,14 @@ export class SummarizerService {
                 }
             }
 
-            // V0.5: 调用 Pipeline 将数据存到 IndexedDB
+            // V0.6: 调用 Pipeline 将数据存到 IndexedDB
+            // 直接传递 JSON 内容，不再调用 Extractor LLM
             const chatId = getCurrentChatId();
             const character = getCurrentCharacter();
             if (chatId && character) {
                 try {
                     const pipelineResult = await pipeline.run({
-                        messages: request.messages,
-                        context: {
-                            characterId: String(character.name),
-                            chatId: chatId
-                        },
+                        jsonContent: result.content,  // 直接传递 JSON
                         sourceRange: {
                             start: request.floorRange[0],
                             end: request.floorRange[1]

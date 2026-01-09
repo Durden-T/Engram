@@ -1,80 +1,137 @@
 /**
  * Engram Database (Dexie.js)
  *
- * Version 3.0 Refactor - "Dual-Nature" Architecture
- * Introduces Scopes, Structured Events, and Graph Entities.
+ * V0.6 Multi-Database Architecture
+ * Each chat_id gets its own isolated IndexedDB database.
  */
 
 import Dexie, { Table } from 'dexie';
-import type { Scope, EventNode, EntityNode } from '../types/graph';
-import type { LogEntry } from '@/lib/logger/types';
+import type { EventNode, EntityNode } from '../types/graph';
 
 /**
- * Engram V3 Database Class
+ * 每个聊天的元数据存储
  */
-export class EngramDatabase extends Dexie {
-    scopes!: Table<Scope, number>;
+export interface ChatMeta {
+    key: string;
+    value: unknown;
+}
+
+/**
+ * ChatDatabase - 单个聊天的数据库类
+ */
+export class ChatDatabase extends Dexie {
     events!: Table<EventNode, string>;
     entities!: Table<EntityNode, string>;
-    logs!: Table<LogEntry, string>;
+    meta!: Table<ChatMeta, string>;
 
-    constructor() {
-        super('EngramDB');
+    constructor(chatId: string) {
+        // 数据库名格式: Engram_{chatId}
+        super(`Engram_${chatId}`);
 
-        // Version 1 & 2: Legacy (Preserved for history, but typically unused in V3 clean install)
         this.version(1).stores({
-            entities: 'id, name, type, brainId',
-            events: 'id, timestamp, significance, brainId, *relatedEntities',
-        });
-
-        this.version(2).stores({
-            entities: 'id, name, type, brainId',
-            events: 'id, timestamp, significance, brainId, *relatedEntities',
-            logs: 'id, timestamp, level, module',
-        });
-
-        // Version 3: The Big Refactor
-        // - Introduced 'scopes' table
-        // - 'events' now uses 'scope_id' and 'level'
-        // - 'entities' now uses 'scope_id'
-        this.version(3).stores({
-            // Scopes: Unique context container
-            // V0.5: 仅使用 chat_id 索引，character_name 仅用于显示
-            scopes: '++id, &uuid, &chat_id, last_active_at',
-
-            // Events: The core memory unit
-            // Indexed by scope, source range (for rollback), significance, and recursive level
-            events: 'id, scope_id, [source_range.start_index+source_range.end_index], significance_score, level',
-
-            // Entities: Graph nodes
-            // Compound index [scope_id+name] ensures uniqueness within a scope
-            entities: '[scope_id+name], type, last_updated_at',
-
-            // Logs: Debugging (Unchanged)
-            logs: 'id, timestamp, level, module'
-        }).upgrade(trans => {
-            // ⚠️ BREAKING CHANGE: Clear old data for the new architecture
-            // In a production app with real users, we would write a migration script.
-            // But since this is a refactor of a dev extension, we opt for a clean slate.
-            return Promise.all([
-                trans.table('events').clear(),
-                trans.table('entities').clear(),
-                // We don't clear logs as they might be useful
-            ]);
+            // Events: 核心记忆单元
+            events: 'id, timestamp, significance_score, level',
+            // Entities: 图谱实体
+            entities: 'id, type, name',
+            // Meta: 状态存储 (lastSummarizedFloor 等)
+            meta: 'key'
         });
     }
 }
 
-// Singleton Instance
-export const db = new EngramDatabase();
+// ======================== 数据库工厂 ========================
+
+/** 数据库实例缓存 */
+const dbCache = new Map<string, ChatDatabase>();
 
 /**
- * Legacy Helper (Deprecated)
- * Retaining this temporarily to identify breakage points in the codebase.
- * TODO: Remove this after Phase 3.
+ * 获取某个聊天的数据库实例（带缓存）
  */
-export const DexieDB = {
-    // These methods will fail or need strict replacement
-    // We keep the object structure to allow "Find Usages" to work,
-    // but typically we should switch to `db.scopes`, `db.events` directly.
-};
+export function getDbForChat(chatId: string): ChatDatabase {
+    if (!chatId) {
+        throw new Error('[Engram DB] chatId is required');
+    }
+
+    if (!dbCache.has(chatId)) {
+        console.debug(`[Engram DB] Creating database for chat: ${chatId}`);
+        dbCache.set(chatId, new ChatDatabase(chatId));
+    }
+    return dbCache.get(chatId)!;
+}
+
+/**
+ * 关闭并移除缓存的数据库
+ */
+export function closeDb(chatId: string): void {
+    const db = dbCache.get(chatId);
+    if (db) {
+        db.close();
+        dbCache.delete(chatId);
+        console.debug(`[Engram DB] Closed database for chat: ${chatId}`);
+    }
+}
+
+/**
+ * 检查某个聊天的数据库是否存在（不会自动创建）
+ */
+export function hasDbForChat(chatId: string): boolean {
+    return dbCache.has(chatId);
+}
+
+/**
+ * 获取数据库实例（如果存在），不自动创建
+ */
+export function tryGetDbForChat(chatId: string): ChatDatabase | null {
+    return dbCache.get(chatId) || null;
+}
+
+/**
+ * 删除整个聊天的数据库
+ */
+export async function deleteDatabase(chatId: string): Promise<void> {
+    closeDb(chatId);
+    await Dexie.delete(`Engram_${chatId}`);
+    console.info(`[Engram DB] Deleted database for chat: ${chatId}`);
+}
+
+/**
+ * 列出所有 Engram 数据库名称
+ */
+export async function listAllDatabases(): Promise<string[]> {
+    const allDbs = await Dexie.getDatabaseNames();
+    return allDbs.filter(name => name.startsWith('Engram_'));
+}
+
+/**
+ * 获取所有 Engram 数据库的 chatId 列表
+ */
+export async function listAllChatIds(): Promise<string[]> {
+    const dbNames = await listAllDatabases();
+    return dbNames.map(name => name.replace('Engram_', ''));
+}
+
+/**
+ * 删除所有 Engram 数据库 (危险操作！)
+ */
+export async function deleteAllDatabases(): Promise<number> {
+    const dbNames = await listAllDatabases();
+    for (const name of dbNames) {
+        await Dexie.delete(name);
+    }
+    dbCache.clear();
+    console.warn(`[Engram DB] Deleted ${dbNames.length} databases`);
+    return dbNames.length;
+}
+
+// ======================== 兼容层 (临时) ========================
+
+/**
+ * @deprecated V0.6: 使用 getDbForChat(chatId) 替代
+ * 保留此导出以便于定位需要迁移的代码
+ */
+export const db = {
+    events: null,
+    entities: null,
+    scopes: null,
+    logs: null,
+} as unknown as ChatDatabase;

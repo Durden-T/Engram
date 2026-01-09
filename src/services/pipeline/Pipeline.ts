@@ -1,38 +1,21 @@
 /**
  * Pipeline - 数据处理编排器
  *
- * 位于 L4 业务层 (services/pipeline/)
- * 编排数据流: Extractor → memoryStore
- *
- * V0.5 重新激活版本
+ * V0.6: 优化性能 - 直接接收已解析的 JSON，不再调用 Extractor LLM
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { extractor, type ExtractedEvent } from './Extractor';
 import { useMemoryStore } from '@/stores/memoryStore';
+import { RobustJsonParser } from '@/utils/JsonParser';
 import type { EventNode } from '@/services/types/graph';
 
 export interface PipelineInput {
-    /** 待处理的聊天消息 */
-    messages: Array<{
-        role: string;
-        content: string;
-        name?: string;
-    }>;
-    /** 上下文信息 */
-    context: {
-        characterId: string;
-        chatId: string;
-    };
+    /** JSON 格式的事件数据 (来自 SummarizerService 的 LLM 输出) */
+    jsonContent: string;
     /** 消息范围 */
     sourceRange: {
         start: number;
         end: number;
-    };
-    /** 配置 */
-    config?: {
-        enableRAG?: boolean;
-        writeToWorldBook?: boolean;
     };
 }
 
@@ -42,50 +25,77 @@ export interface PipelineOutput {
     error?: string;
 }
 
+/** 从 JSON 解析的事件结构 */
+interface ParsedEvent {
+    summary: string;
+    meta: {
+        time_anchor?: string;
+        role?: string[];
+        location?: string;
+        event?: string;
+        logic?: string[];
+        causality?: string;
+    };
+    significance_score: number;
+}
+
+interface ParsedEventsResponse {
+    events: ParsedEvent[];
+}
+
 /**
  * Pipeline 类
  */
 export class Pipeline {
     /**
      * 执行 Pipeline
+     * V0.6: 直接解析 JSON，不再调用 Extractor LLM
      */
     async run(input: PipelineInput): Promise<PipelineOutput> {
         const store = useMemoryStore.getState();
+        const startTime = Date.now();
 
         try {
             console.log('[Pipeline] Starting...');
             store.setProcessing(true);
 
-            // 1. 解析 Scope (V0.5: 仅用 chatId)
-            const scope = await store.resolveScope(
-                input.context.chatId,
-                input.context.characterId  // 作为 characterName 用于显示
-            );
-            console.log(`[Pipeline] Scope resolved: ${scope.uuid}`);
-
-            // 2. 提取事件 (LLM + JSON)
-            const extractedEvents = await extractor.extract(input.messages);
-
-            if (!extractedEvents || extractedEvents.length === 0) {
-                return { success: false, error: 'No events extracted from messages' };
+            // 1. 初始化当前聊天数据库
+            const db = await store.initChat();
+            if (!db) {
+                return { success: false, error: 'No chat context available' };
             }
-            console.log(`[Pipeline] Extracted ${extractedEvents.length} events`);
+            console.log(`[Pipeline] Chat database initialized (${Date.now() - startTime}ms)`);
+
+            // 2. 解析 JSON (不再调用 LLM！)
+            const parsed = RobustJsonParser.parse<ParsedEventsResponse>(input.jsonContent);
+
+            if (!parsed || !parsed.events || parsed.events.length === 0) {
+                console.warn('[Pipeline] No events found in JSON');
+                return { success: false, error: 'No events in JSON content' };
+            }
+            console.log(`[Pipeline] Parsed ${parsed.events.length} events from JSON (${Date.now() - startTime}ms)`);
 
             // 3. 转换为 EventNode 并保存到 DB
             const savedEvents: EventNode[] = [];
 
-            for (const extracted of extractedEvents) {
+            for (const parsedEvent of parsed.events) {
                 // Burn-in: 将时间锚点合并到 summary 前面
-                const burnedSummary = extracted.meta.time_anchor
-                    ? `(${extracted.meta.time_anchor}) ${extracted.summary}`
-                    : extracted.summary;
+                const burnedSummary = parsedEvent.meta.time_anchor
+                    ? `(${parsedEvent.meta.time_anchor}) ${parsedEvent.summary}`
+                    : parsedEvent.summary;
 
                 const eventNode = await store.saveEvent({
-                    scope_id: scope.id!,
-                    summary: burnedSummary,  // 烧录后的 summary
-                    structured_kv: extracted.meta,
-                    significance_score: extracted.significance_score,
-                    level: 0,  // Raw event
+                    summary: burnedSummary,
+                    structured_kv: {
+                        time_anchor: parsedEvent.meta.time_anchor || '',
+                        role: parsedEvent.meta.role || [],
+                        location: parsedEvent.meta.location || '',
+                        event: parsedEvent.meta.event || '',
+                        logic: parsedEvent.meta.logic || [],
+                        causality: parsedEvent.meta.causality || ''
+                    },
+                    significance_score: parsedEvent.significance_score,
+                    level: 0,
                     source_range: {
                         start_index: input.sourceRange.start,
                         end_index: input.sourceRange.end
@@ -93,16 +103,17 @@ export class Pipeline {
                 });
                 savedEvents.push(eventNode);
             }
-            console.log(`[Pipeline] Saved ${savedEvents.length} events to DB`);
+            console.log(`[Pipeline] Saved ${savedEvents.length} events to DB (${Date.now() - startTime}ms)`);
 
             // 4. 刷新宏缓存 (让 {{engramSummaries}} 立即可用)
             const { MacroService } = await import('@/tavern/MacroService');
             await MacroService.refreshCache();
+            console.log(`[Pipeline] Macro cache refreshed (${Date.now() - startTime}ms)`);
 
             // 5. 更新进度
             await store.setLastSummarizedFloor(input.sourceRange.end);
 
-            console.log('[Pipeline] Completed successfully');
+            console.log(`[Pipeline] Completed successfully in ${Date.now() - startTime}ms`);
             return { success: true, events: savedEvents };
 
         } catch (error) {
