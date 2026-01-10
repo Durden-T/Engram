@@ -1,6 +1,6 @@
 /**
  * EventBus - SillyTavern 事件总线封装
- * 
+ *
  * 提供类型安全的事件订阅/取消订阅接口
  */
 
@@ -27,6 +27,10 @@ export const TavernEventType = {
     GENERATION_ENDED: 'generation_ended',
     GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS',
     STREAM_TOKEN_RECEIVED: 'stream_token_received',
+    // V0.7: RAG 注入关键事件 - 在 prompt 组合之前触发，await 会等待 handler 完成
+    GENERATE_BEFORE_COMBINE_PROMPTS: 'generate_before_combine_prompts',
+    GENERATE_AFTER_COMBINE_PROMPTS: 'generate_after_combine_prompts',
+    GENERATE_AFTER_DATA: 'generate_after_data',
 
     // 世界书事件
     WORLDINFO_UPDATED: 'worldinfo_updated',
@@ -67,7 +71,7 @@ function getEventSource(): {
     removeListener: (event: string, callback: EventCallback) => void;
 } | null {
     try {
-        
+
         const SillyTavern = window.SillyTavern;
         if (SillyTavern?.getContext) {
             const context = SillyTavern.getContext();

@@ -1,6 +1,6 @@
 /**
  * Divider - 统一分割线组件
- * 
+ *
  * 支持水平和垂直方向，可配置长度百分比
  * 遵循「无框流体」设计语言
  */
@@ -29,14 +29,14 @@ const spacingClasses = {
 /**
  * 分割线组件
  * 使用 border 方式实现，与原有样式保持一致
- * 
+ *
  * @example
  * // 水平分割线，30% 长度
  * <Divider orientation="horizontal" length={30} />
- * 
+ *
  * // 垂直分割线，50% 长度
  * <Divider orientation="vertical" length={50} />
- * 
+ *
  * // 响应式：移动端水平，桌面端垂直
  * <Divider responsive length={30} />
  */
@@ -55,7 +55,7 @@ export const Divider: React.FC<DividerProps> = ({
             <>
                 {/* 桌面端垂直分割线 - 使用 border-l */}
                 <div
-                    className={`hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 border-l border-border/30 ${className}`}
+                    className={`hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 border-l border-border ${className}`}
                     style={{ height: `${length}%` }}
                 />
                 {/* 移动端水平分割线 - 使用 border-t */}

@@ -1,8 +1,10 @@
 /**
- * Core Graph Data Types for Engram V0.6
+ * Core Graph Data Types for Engram V0.7
  *
  * Multi-Database Architecture:
  * Each chat_id has its own database, so scope_id is no longer needed.
+ *
+ * V0.7: 添加 Embedding 相关字段，移除 Scope
  */
 
 /**
@@ -10,6 +12,7 @@
  * Represents a single processed event, either from raw chat or higher-level summary.
  *
  * V0.6: 移除 scope_id - 每个聊天有独立数据库，不需要分区字段
+ * V0.7: 添加 embedding 相关字段
  */
 export interface EventNode {
     /** UUID */
@@ -18,20 +21,27 @@ export interface EventNode {
     /**
      * Burn-in Text (For Model)
      * High-density text ready for embedding and RAG injection.
+     * 包含所有 KV 信息（时间、地点、人物、事件、逻辑、因果）
      */
     summary: string;
 
     /**
      * Structured Data (For Machine)
-     * JSON object for graph building, filtering, and logic.
+     * JSON object for graph building, filtering, and UI editing.
+     * 这些数据已烧录到 summary 中，此处保留用于结构化查询
      */
     structured_kv: {
         /** 时间锚点 - 保留原文时间格式 */
         time_anchor: string;
+        /** 涉及人物 */
         role: string[];
+        /** 地点 */
         location: string;
+        /** 事件类型/标题 */
         event: string;
+        /** 叙事逻辑标签 */
         logic: string[];
+        /** 因果关系 */
         causality: string;
     };
 
@@ -41,13 +51,30 @@ export interface EventNode {
      */
     embedding?: number[];
 
+    /**
+     * 嵌入模型名称
+     * 用于判断是否需要重新嵌入（模型切换时）
+     */
+    embedding_model?: string;
+
+    /**
+     * 是否已嵌入
+     * 已嵌入的事件从 {{engramSummaries}} 移除，只能通过 RAG 召回
+     */
+    is_embedded: boolean;
+
+    /**
+     * 嵌入时间戳
+     */
+    embedded_at?: number;
+
     /** Importance Score (0.0 - 1.0) */
     significance_score: number;
 
     /**
      * Abstraction Level
-     * 0 = Raw Event (from Chat)
-     * 1 = Meta Summary (Summary of Summaries)
+     * 0 = Raw Event (from Chat) - 细节
+     * 1 = Meta Summary (Trim 压缩后的大纲)
      * ...
      */
     level: number;
@@ -67,8 +94,6 @@ export interface EventNode {
 /**
  * EntityNode - Graph Entities
  * Represents static or slowly changing entities (People, Places, Items).
- *
- * V0.6: 移除 scope_id - 每个聊天有独立数据库
  */
 export interface EntityNode {
     id: string;
@@ -83,21 +108,8 @@ export interface EntityNode {
 }
 
 /**
- * @deprecated V0.6: Scope 不再需要 - 每个聊天有独立数据库
- * 状态信息存储在 meta 表中
- */
-export interface Scope {
-    id?: number;
-    uuid: string;
-    chat_id: string;
-    character_name: string;
-    state: ScopeState;
-    created_at: number;
-    last_active_at: number;
-}
-
-/**
  * ScopeState - 存储在 meta 表中
+ * 每个聊天的状态信息
  */
 export interface ScopeState {
     last_summarized_floor: number;

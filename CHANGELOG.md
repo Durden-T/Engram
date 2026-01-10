@@ -1,6 +1,24 @@
 # Changelog
 
 
+## [0.7.1] - 2026-01-10
+
+### 💄 UI/UX Improvements (界面优化)
+- **Header Fusion & Compact Mode**: 采用了 "Borderless Fluid" 设计理念，移除了顶部边框和多余 Padding，使界面更加紧凑流畅。
+- **LayoutTabs Refactor**: 全面重构了二级导航栏，统一了样式和交互，支持标签页切换时的平滑动画。
+- **Divider Visibility**: 优化了分割线的可见度逻辑，在包含子 Tab 的视图中自动隐藏冗余分割线，提升视觉整洁度。
+- **Sub-tabs Opacity**: 回退了子 Tab 的透明度设置，确保在各种背景下均有良好的可读性。
+
+### 🐛 Bug Fixes & Refactoring (修复与重构)
+- **Embedding Service 404 Fix**: 
+  - 修复了自定义 OpenAI 兼容接口在未提供完整路径时的 404 错误。
+  - 实现了智能 URL 修正功能，自动检测并补全 `/v1/embeddings` 后缀。
+  - 优化了错误日志，现在会明确打印出实际请求的完整 URL。
+- **Linked Deletion for Sharded DB**:
+  - 修复了联动删除功能在多库架构下的失效问题。
+  - 现在删除聊天或角色时，会正确清理对应的 `Engram_{chatId}` IndexedDB 数据库文件。
+  - 增加了对共享 Worldbook 的删除保护警告。
+
 ## [0.3.0] - 2026-01-02
 
 ### 🏗️ Architecture & Refactoring (架构重构)

@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({
     onNavigate,
 }) => {
     return (
-        <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-sidebar/95 backdrop-blur z-50 transition-all duration-300 w-full flex-shrink-0">
+        <header className="h-10 flex items-center justify-between px-4 bg-transparent z-50 transition-all duration-300 w-full flex-shrink-0">
             {/* Left: Logo & Mobile Toggle */}
             <div className="flex items-center gap-3 w-16 md:w-64">
                 {/* Mobile Menu Toggle */}
@@ -27,12 +27,12 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleSidebar}
                     title="菜单"
                 >
-                    <Menu size={20} />
+                    <Menu size={18} />
                 </button>
 
                 {/* Logo - PC 端显示图形+文字 */}
                 <div className="hidden md:flex items-center gap-2">
-                    <EngramIcon size={20} className="text-primary" />
+                    <EngramIcon size={18} className="text-primary" />
                     <span className="font-semibold text-sidebar-foreground tracking-tight">Engram</span>
                 </div>
             </div>

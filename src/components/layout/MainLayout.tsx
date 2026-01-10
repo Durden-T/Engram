@@ -71,13 +71,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children, activeTab, set
 
             {/* Right Content Area (Header + Main) */}
             <div className="flex flex-1 flex-col overflow-hidden">
-                {/* Unified Header (Responsive) */}
-                <Header
-                    onToggleSidebar={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    isMobile={false}
-                    onClose={onClose}
-                    onNavigate={(path) => setActiveTab(path.replace('/', ''))}
-                />
+                {/* Header Complex - Unified Border Container */}
+                <div className="flex flex-col flex-shrink-0 border-b border-border bg-sidebar/95 backdrop-blur z-50 transition-all duration-300">
+                    <Header
+                        onToggleSidebar={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        isMobile={false}
+                        onClose={onClose}
+                        onNavigate={(path) => setActiveTab(path.replace('/', ''))}
+                    />
+
+                    {/* Header Extension Slot (Portal Target) */}
+                    <div id="engram-header-extension" className="z-40 flex-shrink-0 bg-transparent transition-all empty:hidden" />
+                </div>
 
                 {/* Main Content Area - Staged Animation Step 3 (Delay 200ms) with Blur */}
                 <main className="flex-1 flex flex-col relative w-full overflow-hidden bg-background">

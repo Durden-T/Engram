@@ -112,7 +112,8 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
         const event: EventNode = {
             ...eventData,
             id: crypto.randomUUID(),
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            is_embedded: eventData.is_embedded ?? false, // V0.7: 默认未嵌入
         };
 
         await db.events.add(event);
@@ -136,7 +137,16 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
 
             if (events.length === 0) return '';
 
-            const summaries = events.map(e => e.summary).join('\n\n');
+            // V0.7: 过滤逻辑
+            // - Level 1+ (大纲) 总是显示
+            // - Level 0 (细节) 只显示未嵌入的 (已嵌入的通过 RAG 召回)
+            const visibleEvents = events.filter(e =>
+                e.level >= 1 || !e.is_embedded
+            );
+
+            if (visibleEvents.length === 0) return '';
+
+            const summaries = visibleEvents.map(e => e.summary).join('\n\n');
             return `<summary>\n${summaries}\n</summary>`;
         } catch (e) {
             console.error('[MemoryStore] Failed to get event summaries:', e);

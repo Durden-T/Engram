@@ -1,14 +1,17 @@
 /**
  * ProcessingView - 处理中心视图容器
- * 
+ *
  * 只负责框架和 Tab 切换，具体业务逻辑在子组件中
  * 类似 APIPresetsView 的架构设计
  */
 import React, { useState } from 'react';
 import { FileText, Database, Layers, Boxes, ScrollText, BookOpen } from 'lucide-react';
-import { Tab, TabPills } from "@/components/ui/TabPills";
+import { Tab } from "@/components/ui/TabPills";
+import { LayoutTabs } from "@/components/layout/LayoutTabs";
+import { Divider } from "@/components/layout/Divider";
 import { QuickLinks, QuickLink } from '@/components/common/QuickLinks';
 import { SummaryPanel } from './SummaryPanel';
+import { VectorizationPanel } from './VectorizationPanel';
 
 type ProcessingTab = 'summary' | 'vectorization' | 'batch';
 
@@ -39,9 +42,10 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
                 <h1 className="text-2xl font-light text-foreground tracking-tight mb-2">数据处理</h1>
                 <p className="text-sm text-muted-foreground">记忆摘要、向量化存储和批量任务管理</p>
             </div>
+            <Divider className="mb-6" />
 
-            {/* 标签导航 - 使用 TabPills 组件以获得统一的磨砂效果 */}
-            <TabPills
+            {/* 标签导航 - 自动 Portal 到 Header */}
+            <LayoutTabs
                 tabs={MAIN_TABS}
                 activeTab={activeTab}
                 onChange={(id) => setActiveTab(id as ProcessingTab)}
@@ -58,13 +62,8 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
                 {/* 记忆摘要 Tab - 使用 SummaryPanel 组件 */}
                 {activeTab === 'summary' && <SummaryPanel />}
 
-                {/* 向量化 Tab */}
-                {activeTab === 'vectorization' && (
-                    <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-2">
-                        <Database size={32} strokeWidth={1} className="opacity-30" />
-                        <p className="text-sm font-light">向量化功能开发中...</p>
-                    </div>
-                )}
+                {/* 向量化 Tab - V0.7 使用 VectorizationPanel */}
+                {activeTab === 'vectorization' && <VectorizationPanel />}
 
                 {/* 批量处理 Tab */}
                 {activeTab === 'batch' && (
@@ -79,3 +78,4 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
 };
 
 export default ProcessingView;
+

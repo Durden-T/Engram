@@ -79,23 +79,48 @@ export class Pipeline {
             const savedEvents: EventNode[] = [];
 
             for (const parsedEvent of parsed.events) {
-                // Burn-in: 将时间锚点合并到 summary 前面
-                const burnedSummary = parsedEvent.meta.time_anchor
-                    ? `(${parsedEvent.meta.time_anchor}) ${parsedEvent.summary}`
-                    : parsedEvent.summary;
+                // V0.7 完整烧录格式：
+                // 标题:
+                // (时间 | 地点 | 人物) summary
+                // [逻辑: ...] [因果: ...]
+                const meta = parsedEvent.meta;
+
+                // 构建元数据行
+                const metaParts: string[] = [];
+                if (meta.time_anchor) metaParts.push(meta.time_anchor);
+                if (meta.location) metaParts.push(meta.location);
+                if (meta.role && meta.role.length > 0) metaParts.push(meta.role.join(', '));
+                const metaLine = metaParts.length > 0 ? `(${metaParts.join(' | ')}) ` : '';
+
+                // 构建标题行
+                const titleLine = meta.event ? `${meta.event}:\n` : '';
+
+                // 构建逻辑/因果行
+                const logicParts: string[] = [];
+                if (meta.logic && meta.logic.length > 0) {
+                    logicParts.push(`[逻辑: ${meta.logic.join(', ')}]`);
+                }
+                if (meta.causality) {
+                    logicParts.push(`[因果: ${meta.causality}]`);
+                }
+                const logicLine = logicParts.length > 0 ? `\n${logicParts.join(' ')}` : '';
+
+                // 完整烧录文本：标题 + 元数据 + 摘要 + 逻辑因果
+                const burnedSummary = `${titleLine}${metaLine}${parsedEvent.summary}${logicLine}`;
 
                 const eventNode = await store.saveEvent({
                     summary: burnedSummary,
                     structured_kv: {
-                        time_anchor: parsedEvent.meta.time_anchor || '',
-                        role: parsedEvent.meta.role || [],
-                        location: parsedEvent.meta.location || '',
-                        event: parsedEvent.meta.event || '',
-                        logic: parsedEvent.meta.logic || [],
-                        causality: parsedEvent.meta.causality || ''
+                        time_anchor: meta.time_anchor || '',
+                        role: meta.role || [],
+                        location: meta.location || '',
+                        event: meta.event || '',
+                        logic: meta.logic || [],
+                        causality: meta.causality || ''
                     },
                     significance_score: parsedEvent.significance_score,
                     level: 0,
+                    is_embedded: false, // V0.7: 新事件默认未嵌入
                     source_range: {
                         start_index: input.sourceRange.start,
                         end_index: input.sourceRange.end

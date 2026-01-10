@@ -238,6 +238,30 @@ export interface TrimConfig {
   previewEnabled?: boolean;
 }
 
+// ==================== 嵌入配置 ====================
+
+/**
+ * 嵌入触发器类型
+ * - 'with_trim': 与 Trim 联动，Trim 时自动嵌入
+ * - 'standalone': 独立触发，使用与 Trim 相同的阈值
+ * - 'manual': 仅手动触发
+ */
+export type EmbeddingTriggerType = 'with_trim' | 'standalone' | 'manual';
+
+/**
+ * 嵌入配置
+ */
+export interface EmbeddingConfig {
+  /** 是否启用嵌入 */
+  enabled: boolean;
+  /** 触发器类型 */
+  trigger: EmbeddingTriggerType;
+  /** 并发数 (1-20) */
+  concurrency: number;
+  /** 保留最近 N 条不嵌入 (与 Trim.keepRecentCount 共享) */
+  keepRecentCount?: number;
+}
+
 // ==================== 完整配置 ====================
 
 /**
@@ -258,6 +282,8 @@ export interface EngramAPISettings {
   worldbookConfig: WorldbookConfig;
   /** 精简配置（可选，二层总结） */
   trimConfig?: TrimConfig;
+  /** V0.7: 嵌入配置 */
+  embeddingConfig?: EmbeddingConfig;
 }
 
 // ==================== 默认值 ====================
@@ -297,6 +323,16 @@ export const DEFAULT_RERANK_CONFIG: RerankConfig = {
   model: '',
   topN: 5,
   hybridAlpha: 0.5,
+};
+
+/**
+ * V0.7: 默认嵌入配置
+ */
+export const DEFAULT_EMBEDDING_CONFIG: EmbeddingConfig = {
+  enabled: false,
+  trigger: 'with_trim',
+  concurrency: 5,
+  keepRecentCount: 3,
 };
 
 /**

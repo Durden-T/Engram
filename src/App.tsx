@@ -7,7 +7,6 @@ import { SettingsManager } from '@/services/settings/Persistence';
 import { Dashboard } from '@/views/Dashboard';
 
 // 非首屏视图懒加载 - 减少首屏 bundle 大小
-const GraphView = lazy(() => import('@/views/Graph').then(m => ({ default: m.GraphView })));
 const DevLog = lazy(() => import('@/views/DevLog').then(m => ({ default: m.DevLog })));
 const APIPresets = lazy(() => import('@/views/APIPresets/APIPresetsView').then(m => ({ default: m.APIPresets })));
 const Settings = lazy(() => import('@/views/Settings').then(m => ({ default: m.Settings })));
@@ -68,8 +67,6 @@ export const App: React.FC<AppProps> = ({ onClose }) => {
                 return <Dashboard onNavigate={setActiveTab} />;
             case 'presets':
                 return <APIPresets initialTab={subtab as 'model' | 'prompt' | 'regex' | 'worldbook'} />;
-            case 'graph':
-                return <GraphView />;
             case 'devlog':
                 return <DevLog initialTab={subtab as 'runtime' | 'model'} />;
             case 'settings':

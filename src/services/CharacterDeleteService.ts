@@ -7,7 +7,7 @@ import { notificationService } from '@/services/NotificationService';
 
 /**
  * CharacterDeleteService - 联动删除服务
- * 
+ *
  * 监听角色删除和聊天删除事件，同步删除 Engram 世界书
  */
 export class CharacterDeleteService {
@@ -76,9 +76,26 @@ export class CharacterDeleteService {
      */
     private static async onChatDeleted(chatId: string) {
         const settings = SettingsManager.getSettings().linkedDeletion;
-        if (!settings?.enabled || !settings?.deleteChatWorldbook) return;
+        if (!settings?.enabled) return;
 
         Logger.debug('CharacterDeleteService', '检测到聊天删除', chatId);
+
+        // 1. 删除 IndexedDB (V0.6+ Sharding)
+        // 只要启用了联动删除，就清理该聊天的数据库，因为它是隔离的，不会影响其他聊天
+        try {
+            const { deleteDatabase, hasDbForChat } = await import('@/services/database/db');
+            if (hasDbForChat(chatId)) {
+                await deleteDatabase(chatId);
+                Logger.info('CharacterDeleteService', `已删除 IndexedDB: Engram_${chatId}`);
+                notificationService.info('已清理关联的 Engram 数据库', 'Engram');
+            }
+        } catch (e) {
+            Logger.error('CharacterDeleteService', `删除数据库失败: Engram_${chatId}`, e);
+        }
+
+        // 2. 删除 Worldbook (旧逻辑 / 宏占位)
+        // 仅在明确启用 deleteChatWorldbook 时执行，因为如果是共享世界书，可能会误删
+        if (!settings.deleteChatWorldbook) return;
 
         // 从 chatId 解析角色名
         // 常见格式: "CharName - 2024-1-1@12h30m" 或 "CharName_2024-1-1@12h30m"

@@ -159,7 +159,7 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div>
                                     <h4 className="font-medium text-foreground">联动删除</h4>
-                                    <p className="text-sm text-muted-foreground">删除角色卡时，一并删除关联的 Engram 记忆库</p>
+                                    <p className="text-sm text-muted-foreground">删除角色/聊天时，自动清理关联的 Engram 记忆库 (IndexedDB)</p>
                                 </div>
                             </div>
                             <Switch
@@ -188,8 +188,8 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <span className="text-sm text-muted-foreground">删除聊天时同步删除</span>
-                                        <p className="text-xs text-muted-foreground/60">清空聊天记录时也删除关联的 Engram 记忆库</p>
+                                        <span className="text-sm text-muted-foreground">删除聊天时同步删除 Worldbook</span>
+                                        <p className="text-xs text-muted-foreground/60">危险: 如果多聊天共享同一个 Character Worldbook，可能会导致误删</p>
                                     </div>
                                     <Switch
                                         checked={linkedDeletion.deleteChatWorldbook ?? false}

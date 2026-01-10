@@ -5,10 +5,11 @@
 我们的设计语言是 **"无框流体 (Borderless Fluid)"**，同时**支持多主题系统**。
 
 -   **"无框布局" (Borderless)**: 减少大面积边框，用空间和对齐区分层级
+-   **"Header 融合" (Header Fusion)**: 顶部 Header 与二级导航栏 (`LayoutTabs`) 视觉融合，移除中间分割线
 -   **"减弱卡片" (De-emphasize Cards)**: 仅在必要时使用微妙背景区分
--   **"细线分割" (Thin Dividers)**: 使用 `1px` 极细线条 (`border-border`) 分割区域
+-   **"细线分割" (Thin Dividers)**: 使用 `1px` 极细线条 (`border-border`) 分割区域，但**避免在二级 Tab 界面使用**
 -   **"字体区分"**: 使用字体大小和字重体现层级
--   **"极简主义" (Minimalism)**: 去除装饰性元素，强调排版和间距
+-   **"极简主义"**: 压缩顶部空间 (`Ultra-Slim Header`)，强调内容区
 -   **"注重排版"**: 不要在PC端有足够宽度的情况下，使用单一的竖直筒状布局
 ---
 
@@ -64,7 +65,19 @@
 <button className="text-zinc-500 hover:bg-zinc-800">
 ```
 
-### 4.2 按钮 (Buttons)
+### 4.2 布局组件 (Layout Components)
+
+#### Header & Tabs (融合设计)
+- **Header**: 高度固定的极简栏 (`h-10`), 图标尺寸 `18px`。
+- **LayoutTabs**: 使用 `Portal` 渲染至 Header 下方，移除顶部 padding，与 Header 共享底部边框。
+- **TabPills**: 按钮 padding 压缩至 `py-1.5`，文字 `text-sm`。
+
+#### Divider (分割线)
+- **位置**: 仅在 `PageTitle` 下方使用（**例外**: 包含二级 Tab 的页面如 API Presets 不使用）。
+- **样式**: `border-t border-border` (不使用透明度/30)。
+- **间距**: 配合 `PageTitle` 的 `mb-2` 使用，保持紧凑。
+
+### 4.3 按钮 (Buttons)
 
 -   **Primary**: `bg-primary text-primary-foreground`
 -   **Secondary/Ghost**: `bg-transparent border-border text-muted-foreground hover:bg-accent`

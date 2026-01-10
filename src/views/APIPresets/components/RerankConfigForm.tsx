@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, NumberField, SwitchField, FormSection, SelectField } from './FormField';
+import { TextField, NumberField, SwitchField, FormSection, SelectField, SearchableSelectField } from './FormField';
 import type { RerankConfig } from '@/services/api/types';
 import { RefreshCw, Loader2 } from 'lucide-react';
 import { ModelService, ModelInfo } from '@/services/api/ModelDiscovery';
@@ -97,14 +97,17 @@ export const RerankConfigForm: React.FC<RerankConfigFormProps> = ({
                         <div className="flex flex-col gap-2">
                             <div className="flex items-end gap-2">
                                 {modelList.length > 0 ? (
-                                    <SelectField
-                                        className="flex-1 !mb-0"
-                                        label="模型名称"
-                                        value={config.model}
-                                        onChange={(value) => updateConfig({ model: value })}
-                                        options={modelList.map(m => ({ value: m.id, label: m.name || m.id }))}
-                                        placeholder="选择模型"
-                                    />
+                                    <div className="flex-1 relative">
+                                        <SearchableSelectField
+                                            className="!mb-0"
+                                            label="模型名称"
+                                            value={config.model}
+                                            onChange={(value) => updateConfig({ model: value })}
+                                            options={modelList.map(m => ({ value: m.id, label: m.name || m.id }))}
+                                            placeholder="选择模型"
+                                            emptyText="未找到可用模型"
+                                        />
+                                    </div>
                                 ) : (
                                     <TextField
                                         className="flex-1 !mb-0"

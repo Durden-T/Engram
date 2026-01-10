@@ -2,7 +2,7 @@
  * 向量化配置表单
  */
 import React, { useState } from 'react';
-import { TextField, SelectField, FormSection } from './FormField';
+import { TextField, SelectField, FormSection, SearchableSelectField } from './FormField';
 import type { VectorConfig, VectorSource } from '@/services/api/types';
 import { RefreshCw, Loader2 } from 'lucide-react';
 import { ModelService, ModelInfo, ModelAPIType } from '@/services/api/ModelDiscovery';
@@ -77,6 +77,14 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
             const fetchConfig = { apiUrl: config.apiUrl || '', apiKey: config.apiKey };
 
             switch (config.source) {
+                case 'custom':
+                    // custom 使用 OpenAI 兼容 API
+                    if (!config.apiUrl) {
+                        setModelError('请先填写 API URL');
+                        return;
+                    }
+                    models = await ModelService.fetchOpenAIModels(fetchConfig);
+                    break;
                 case 'ollama':
                     if (!config.apiUrl) {
                         setModelError('请先填写 API URL');
@@ -127,16 +135,16 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
 
                 {needsUrl && (
                     <TextField
-                        label="API URL"
+                        label={config.source === 'ollama' ? 'API Endpoint (完整路径)' : '完整 API URL'}
                         type="url"
                         value={config.apiUrl || ''}
                         onChange={(value) => updateConfig({ apiUrl: value })}
                         placeholder={
                             config.source === 'ollama'
-                                ? 'http://localhost:11434'
-                                : 'http://localhost:8000'
+                                ? 'http://localhost:11434/api/embeddings'
+                                : 'https://api.openai.com/v1/embeddings'
                         }
-                        description={`${config.source} 服务的 API 端点`}
+                        description={config.source === 'ollama' ? '例如: http://localhost:11434/api/embeddings' : '需包含完整的路径，如 /v1/embeddings'}
                     />
                 )}
 
@@ -154,14 +162,17 @@ export const VectorConfigForm: React.FC<VectorConfigFormProps> = ({
                 <div className="flex flex-col gap-2">
                     <div className="flex items-end gap-2">
                         {modelList.length > 0 ? (
-                            <SelectField
-                                className="flex-1 !mb-0"
-                                label="模型名称"
-                                value={config.model || ''}
-                                onChange={(value) => updateConfig({ model: value })}
-                                options={modelList.map(m => ({ value: m.id, label: m.name || m.id }))}
-                                placeholder="选择模型"
-                            />
+                            <div className="flex-1 relative">
+                                <SearchableSelectField
+                                    className="!mb-0"
+                                    label="模型名称"
+                                    value={config.model || ''}
+                                    onChange={(value) => updateConfig({ model: value })}
+                                    options={modelList.map(m => ({ value: m.id, label: m.name || m.id }))}
+                                    placeholder="选择模型"
+                                    emptyText="未找到可用模型"
+                                />
+                            </div>
                         ) : (
                             <TextField
                                 className="flex-1 !mb-0"

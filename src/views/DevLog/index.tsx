@@ -1,6 +1,6 @@
 /**
  * DevLog - 开发日志视图
- * 
+ *
  * 应用「无框流体」设计语言：
  * - 减少卡片边框，使用细线分割
  * - 工具栏 sticky 固定
@@ -20,7 +20,9 @@ import {
 import { Logger, LogEntry, LogLevel, LogLevelConfig } from "@/lib/logger";
 import { LogEntryItem } from './LogEntryItem';
 import { ModelLog } from './ModelLog';
-import { TabPills, Tab } from "@/components/ui/TabPills";
+import { Tab } from "@/components/ui/TabPills";
+import { LayoutTabs } from "@/components/layout/LayoutTabs";
+import { Divider } from "@/components/layout/Divider";
 
 // Tab 类型
 type TabType = 'runtime' | 'model';
@@ -118,24 +120,23 @@ export const DevLog: React.FC<DevLogProps> = ({ initialTab }) => {
     return (
         <div className="flex flex-col h-full">
             {/* 页面标题 - 统一样式 */}
-            <div className="mb-6">
+            <div className="mb-2">
                 <h1 className="text-2xl font-light text-foreground tracking-tight mb-2">开发日志</h1>
                 <p className="text-sm text-muted-foreground">运行时日志和模型调用记录</p>
             </div>
 
-            {/* Tab 切换 - sticky */}
-            <TabPills
+            {/* Tab 切换 - 使用 LayoutTabs */}
+            <LayoutTabs
                 tabs={TABS}
                 activeTab={activeTab}
                 onChange={(id) => setActiveTab(id as TabType)}
-                sticky={true} // 恢复吸顶
             />
 
             {/* ========== 运行日志 Tab ========== */}
             {activeTab === 'runtime' && (
                 <div className="flex flex-col flex-1 min-h-0">
-                    {/* 工具栏 - sticky (Level 2, offset by TabPills height approx 52px) */}
-                    <div className="sticky top-[52px] z-10 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
+                    {/* 工具栏 - sticky (Level 2, now top-0 because tabs are in header) */}
+                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 border-b border-border">
                         <div className="flex items-center gap-2 flex-wrap">
                             {/* 级别过滤 */}
                             <div className="relative">

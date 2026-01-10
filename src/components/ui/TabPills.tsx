@@ -12,7 +12,7 @@ export interface Tab {
     icon?: React.ReactNode;
 }
 
-interface TabPillsProps {
+export interface TabPillsProps {
     tabs: Tab[];
     activeTab: string;
     onChange: (id: string) => void;
@@ -26,7 +26,7 @@ export const TabPills: React.FC<TabPillsProps> = ({ tabs, activeTab, onChange, s
     <div
         className={`
             flex items-center justify-between gap-4 mb-6 border-b border-border
-            ${sticky ? 'sticky z-20 pt-4 pb-0 -mt-4 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12 backdrop-blur bg-background/80' : 'px-0'}
+            ${sticky ? 'glass-sticky sticky z-20 pt-4 pb-0 -mt-4 -mx-4 px-4 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12' : 'px-0'}
             ${className}
         `}
         style={sticky ? {
@@ -39,7 +39,7 @@ export const TabPills: React.FC<TabPillsProps> = ({ tabs, activeTab, onChange, s
                 <button
                     key={tab.id}
                     onClick={() => onChange(tab.id)}
-                    className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm transition-all relative ${activeTab === tab.id
+                    className={`flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm transition-all relative ${activeTab === tab.id
                         ? 'text-foreground'
                         : 'text-muted-foreground hover:text-foreground'
                         }`}

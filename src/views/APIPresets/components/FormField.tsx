@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { Switch } from '@/components/ui/Switch';
 
 interface FormSectionProps {
@@ -331,6 +331,157 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
                 onChange={onChange}
                 disabled={disabled}
             />
+        </div>
+    );
+};
+
+/**
+ * 可搜索下拉框 - 用于大量选项的模型选择
+ * 点击展开下拉，支持输入搜索过滤
+ */
+interface SearchableSelectFieldProps extends BaseFieldProps {
+    value: string;
+    onChange: (value: string) => void;
+    options: SelectOption[];
+    placeholder?: string;
+    disabled?: boolean;
+    emptyText?: string;
+}
+
+export const SearchableSelectField: React.FC<SearchableSelectFieldProps> = ({
+    label,
+    description,
+    error,
+    required,
+    className = '',
+    value,
+    onChange,
+    options,
+    placeholder = '请选择...',
+    disabled,
+    emptyText = '无可用选项',
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // 过滤选项
+    const filteredOptions = options.filter(opt =>
+        opt.label.toLowerCase().includes(search.toLowerCase()) ||
+        opt.value.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // 当前选中的 label
+    const selectedLabel = options.find(opt => opt.value === value)?.label || value || placeholder;
+
+    // 点击外部关闭
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+                setSearch('');
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // 打开时聚焦搜索框
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isOpen]);
+
+    const handleSelect = (optValue: string) => {
+        onChange(optValue);
+        setIsOpen(false);
+        setSearch('');
+    };
+
+    return (
+        <div className={`flex flex-col gap-1 ${className}`} ref={containerRef}>
+            <label className="text-xs text-muted-foreground flex items-center gap-1">
+                {label}
+                {required && <span className="text-destructive">*</span>}
+            </label>
+
+            {/* 触发按钮 */}
+            <button
+                type="button"
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
+                className="relative w-full text-left py-2 pr-6 border-0 border-b border-border bg-transparent text-sm text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-primary transition-colors"
+            >
+                <span className={value ? '' : 'text-muted-foreground'}>{selectedLabel}</span>
+                <ChevronDown
+                    size={14}
+                    className={`absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                />
+            </button>
+
+            {/* 下拉面板 - 使用 glass-panel 实现正确的模糊效果 */}
+            {isOpen && (
+                <div className="glass-panel absolute z-50 mt-1 w-full max-h-64 border border-border rounded-lg shadow-xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+                    style={{ top: '100%', left: 0, right: 0 }}
+                >
+                    {/* 搜索框 */}
+                    <div className="p-2 border-b border-border flex items-center gap-2">
+                        <Search size={14} className="text-muted-foreground flex-shrink-0" />
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="搜索模型..."
+                            className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch('')}
+                                className="p-0.5 hover:bg-muted rounded"
+                            >
+                                <X size={12} className="text-muted-foreground" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* 选项列表 */}
+                    <div className="overflow-y-auto max-h-48">
+                        {filteredOptions.length > 0 ? (
+                            filteredOptions.map((opt) => (
+                                <div
+                                    key={opt.value}
+                                    onClick={() => handleSelect(opt.value)}
+                                    className={`px-3 py-2 cursor-pointer text-sm truncate transition-colors ${opt.value === value
+                                        ? 'bg-primary/15 text-primary'
+                                        : 'hover:bg-muted text-foreground'
+                                        }`}
+                                    title={opt.label}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                                {search ? '无匹配结果' : emptyText}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 选项计数 */}
+                    {options.length > 10 && (
+                        <div className="px-3 py-1 border-t border-border text-xs text-muted-foreground/70">
+                            {filteredOptions.length} / {options.length} 个模型
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {description && <p className="text-[10px] text-muted-foreground/70 break-words">{description}</p>}
+            {error && <p className="text-[10px] text-destructive">{error}</p>}
         </div>
     );
 };

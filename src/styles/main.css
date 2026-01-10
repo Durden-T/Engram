@@ -210,6 +210,49 @@
     -webkit-backdrop-filter: var(--glass-backdrop-filter, none) !important;
 }
 
+/**
+ * Glass Panel - 使用伪元素实现可靠的模糊背景
+ *
+ * 解决问题：直接使用 backdrop-filter 时，无法模糊同一堆叠上下文中的文字
+ * 解决方案：使用 ::before 伪元素作为模糊层，将模糊与内容分离
+ *
+ * 用法：<div class="glass-panel">内容</div>
+ */
+.glass-panel {
+    position: relative;
+    isolation: isolate;
+    /* 创建新的堆叠上下文 */
+}
+
+.glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--popover, hsl(224 30% 8%));
+    opacity: 0.6;
+    backdrop-filter: var(--glass-backdrop-filter, blur(12px));
+    -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(12px));
+}
+
+/* Sticky 元素专用玻璃效果 (如 TabPills) */
+/* 注意：不设置 position，让组件自己控制 sticky */
+.glass-sticky {
+    isolation: isolate;
+}
+
+.glass-sticky::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--background, hsl(224 30% 6%));
+    opacity: 0.5;
+    backdrop-filter: var(--glass-backdrop-filter, blur(16px));
+    -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(16px));
+}
+
 /* Isolation and Styling for Changelog Markdown content */
 :where(#engram-panel-root) .engram-changelog-content {
     font-size: 0.85rem;
