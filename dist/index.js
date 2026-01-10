@@ -22778,7 +22778,7 @@ async function ny() {
   const { ThemeManager: i } = await Promise.resolve().then(() => Oc);
   i.init();
   try {
-    const { injector: l } = await Promise.resolve().then(() => dk);
+    const { injector: l } = await Promise.resolve().then(() => hk);
     l.init(), n.info("Injector", "Service initialized");
   } catch (l) {
     n.warn("Injector", "Failed to initialize Injector", { error: String(l) });
@@ -22791,7 +22791,7 @@ async function ny() {
   }
   kw();
   try {
-    const { CharacterDeleteService: l } = await Promise.resolve().then(() => hk);
+    const { CharacterDeleteService: l } = await Promise.resolve().then(() => mk);
     l.init(), n.info("STBridge", "CharacterDeleteService initialized");
   } catch (l) {
     n.warn("STBridge", "Failed to initialize CharacterDeleteService", { error: String(l) });
@@ -22964,7 +22964,7 @@ const _w = (n) => {
       ] }, v.id)) })
     ] })
   ] }) });
-}, Nw = Z.lazy(() => Promise.resolve().then(() => jk).then((n) => ({ default: n.DevLog }))), Tw = Z.lazy(() => Promise.resolve().then(() => Qk).then((n) => ({ default: n.APIPresets }))), Aw = Z.lazy(() => Promise.resolve().then(() => Wk).then((n) => ({ default: n.Settings }))), zw = Z.lazy(() => Promise.resolve().then(() => oC).then((n) => ({ default: n.MemoryStream }))), Mw = Z.lazy(() => Promise.resolve().then(() => bC).then((n) => ({ default: n.ProcessingView }))), Ow = () => /* @__PURE__ */ c.jsx("div", { className: "flex items-center justify-center h-full", children: /* @__PURE__ */ c.jsx("div", { className: "animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" }) }), Dw = ({ onClose: n }) => {
+}, Nw = Z.lazy(() => Promise.resolve().then(() => _k).then((n) => ({ default: n.DevLog }))), Tw = Z.lazy(() => Promise.resolve().then(() => Xk).then((n) => ({ default: n.APIPresets }))), Aw = Z.lazy(() => Promise.resolve().then(() => Jk).then((n) => ({ default: n.Settings }))), zw = Z.lazy(() => Promise.resolve().then(() => sC).then((n) => ({ default: n.MemoryStream }))), Mw = Z.lazy(() => Promise.resolve().then(() => xC).then((n) => ({ default: n.ProcessingView }))), Ow = () => /* @__PURE__ */ c.jsx("div", { className: "flex items-center justify-center h-full", children: /* @__PURE__ */ c.jsx("div", { className: "animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" }) }), Dw = ({ onClose: n }) => {
   const [r, i] = Z.useState("dashboard"), [l, s] = Z.useState(!1), [u, d] = Z.useState(!1);
   Z.useEffect(() => {
     const b = setTimeout(() => {
@@ -23683,7 +23683,7 @@ ${d}`;
    */
   static async loadFilteringState() {
     var v, x, j;
-    const r = Xn(), i = ((v = r == null ? void 0 : r.getGlobalWorldbookNames) == null ? void 0 : v.call(r)) || [], { SettingsManager: l } = await Promise.resolve().then(() => Zy), u = (x = l.getSettings().apiSettings) == null ? void 0 : x.worldbookConfig, d = (u == null ? void 0 : u.disabledWorldbooks) || [], { WorldBookStateService: m } = await Promise.resolve().then(() => $k), y = (j = r == null ? void 0 : r.getCharWorldbookNames) == null ? void 0 : j.call(r, "current");
+    const r = Xn(), i = ((v = r == null ? void 0 : r.getGlobalWorldbookNames) == null ? void 0 : v.call(r)) || [], { SettingsManager: l } = await Promise.resolve().then(() => Zy), u = (x = l.getSettings().apiSettings) == null ? void 0 : x.worldbookConfig, d = (u == null ? void 0 : u.disabledWorldbooks) || [], { WorldBookStateService: m } = await Promise.resolve().then(() => Vk), y = (j = r == null ? void 0 : r.getCharWorldbookNames) == null ? void 0 : j.call(r, "current");
     let b = {};
     return y != null && y.primary && (b = (await m.loadState(y.primary)).disabledEntries || {}), {
       globalWorldbooks: i,
@@ -26957,17 +26957,17 @@ const rm = /* @__PURE__ */ yl(Vw), oy = Symbol.for("Dexie"), Js = globalThis[oy]
 if (rm.semVer !== Js.semVer)
   throw new Error(`Two different versions of Dexie loaded in the same app: ${rm.semVer} and ${Js.semVer}`);
 const {
-  liveQuery: SC,
-  mergeRanges: wC,
-  rangesOverlap: kC,
-  RangeSet: CC,
-  cmp: EC,
-  Entity: jC,
-  PropModification: _C,
-  replacePrefix: NC,
-  add: TC,
-  remove: AC,
-  DexieYProvider: zC
+  liveQuery: wC,
+  mergeRanges: kC,
+  rangesOverlap: CC,
+  RangeSet: EC,
+  cmp: jC,
+  Entity: _C,
+  PropModification: NC,
+  replacePrefix: TC,
+  add: AC,
+  remove: zC,
+  DexieYProvider: MC
 } = Js;
 class ox extends Js {
   constructor(i) {
@@ -27310,11 +27310,17 @@ class Xw {
   }
 }
 const Oh = new Xw();
+function Zw() {
+  return typeof crypto < "u" && typeof crypto.randomUUID == "function" ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (n) => {
+    const r = Math.random() * 16 | 0;
+    return (n === "x" ? r : r & 3 | 8).toString(16);
+  });
+}
 function ul() {
   const n = Er();
   return n ? ml(n) : null;
 }
-function Zw() {
+function Ww() {
   const n = Er();
   return n ? Kc(n) : null;
 }
@@ -27353,7 +27359,7 @@ const Na = Vy((n, r) => ({
       throw new Error("[MemoryStore] No current chat");
     const s = {
       ...i,
-      id: crypto.randomUUID(),
+      id: Zw(),
       timestamp: Date.now(),
       is_embedded: i.is_embedded ?? !1,
       // V0.7: 默认未嵌入
@@ -27365,7 +27371,7 @@ const Na = Vy((n, r) => ({
     })), s;
   },
   getEventSummaries: async (i) => {
-    const l = Zw();
+    const l = Ww();
     if (!l) return "";
     try {
       const s = await l.events.toArray();
@@ -27668,7 +27674,7 @@ class hx {
     return i = i.replace(/,\s*([}\]])/g, "$1"), i;
   }
 }
-class Ww {
+class Jw {
   /**
    * 执行 Pipeline
    * V0.6: 直接解析 JSON，不再调用 Extractor LLM
@@ -27724,8 +27730,8 @@ ${C.join(" ")}` : "", L = `${j}${x}${y.summary}${N}`, V = await i.saveEvent({
     }
   }
 }
-const Jw = new Ww();
-class ek {
+const ek = new Jw();
+class tk {
   /**
    * 请求用户修订内容
    * @returns Promise<string> 用户确认后的新内容
@@ -27743,7 +27749,7 @@ class ek {
     });
   }
 }
-const Dm = new ek(), mx = {
+const Dm = new tk(), mx = {
   enabled: !0,
   triggerMode: "auto",
   floorInterval: 10,
@@ -27757,7 +27763,7 @@ const Dm = new ek(), mx = {
   // 默认保留 3 楼不处理
   autoHide: !1
   // 默认不自动隐藏
-}, tk = `<system_configuration>
+}, nk = `<system_configuration>
   <role_definition>
     身份: 长篇虚构故事记忆摘要器
     核心任务: 担任超长篇虚构故事的"记忆核心"。接收用户提供的已有剧情原文，先理解"故事元摘要"的宏观视角，然后严格按照时间顺序，并遵照"事件粒度原则"合并同类项，分解为最精简的、服务于长线记忆的关键事件。
@@ -28110,22 +28116,22 @@ const Dm = new ek(), mx = {
   </example_demonstration>
 </system_configuration>
 
-`, nk = `你是一个查询理解助手。请分析用户的输入，识别其中的指代词（如"那件事"、"他"等），并扩展为更明确的查询词。
+`, rk = `你是一个查询理解助手。请分析用户的输入，识别其中的指代词（如"那件事"、"他"等），并扩展为更明确的查询词。
 `, Gc = [
   { value: "summary", label: "剧情摘要", description: "将对话转为结构化 JSON 事件" },
   { value: "trim", label: "精简/修剪", description: "合并、压缩旧的事件记录" },
   { value: "query_enhance", label: "用户输入加强", description: "扩展用户输入，解决指代问题" }
-], rk = {
+], ik = {
   temperature: 0.7,
   topP: 0.95,
   maxTokens: 2048,
   frequencyPenalty: 0,
   presencePenalty: 0
-}, ik = {
-  maxChatHistory: 10
 }, ak = {
-  source: "transformers"
+  maxChatHistory: 10
 }, lk = {
+  source: "transformers"
+}, ok = {
   enabled: !1,
   url: "",
   apiKey: "",
@@ -28144,8 +28150,8 @@ function gx(n = "默认预设") {
     id: `preset_${r}`,
     name: n,
     source: "tavern",
-    parameters: { ...rk },
-    context: { ...ik },
+    parameters: { ...ik },
+    context: { ...ak },
     isDefault: !0,
     createdAt: r,
     updatedAt: r
@@ -28173,7 +28179,7 @@ function yx() {
     jo("剧情摘要", "summary", {
       enabled: !0,
       isBuiltIn: !0,
-      systemPrompt: tk,
+      systemPrompt: nk,
       userPromptTemplate: `{{worldbookContext}}
 请将以下对话内容总结为结构化事件：
 
@@ -28200,7 +28206,7 @@ function yx() {
     jo("查询增强", "query_enhance", {
       enabled: !0,
       isBuiltIn: !0,
-      systemPrompt: nk,
+      systemPrompt: rk,
       userPromptTemplate: `{{worldbookContext}}
 以上是相关设定和剧情。
 
@@ -28217,11 +28223,11 @@ function yx() {
 function Rm(n) {
   return yx().find((r) => r.category === n) || null;
 }
-const ok = {
+const sk = {
   enabled: !0,
   includeGlobal: !0,
   disabledWorldbooks: []
-}, sk = {
+}, uk = {
   enabled: !1,
   trigger: "token",
   tokenLimit: 4096,
@@ -28234,14 +28240,14 @@ function dy() {
   return {
     llmPresets: [gx()],
     selectedPresetId: null,
-    vectorConfig: { ...ak },
-    rerankConfig: { ...lk },
+    vectorConfig: { ...lk },
+    rerankConfig: { ...ok },
     promptTemplates: yx(),
-    worldbookConfig: { ...ok }
+    worldbookConfig: { ...sk }
   };
 }
 const hy = 100;
-class uk {
+class ck {
   constructor() {
     it(this, "entries", []);
     it(this, "listeners", /* @__PURE__ */ new Set());
@@ -28360,7 +28366,7 @@ class uk {
       r();
   }
 }
-const ka = new uk(), bo = "engram";
+const ka = new ck(), bo = "engram";
 function my() {
   var n, r;
   try {
@@ -28378,7 +28384,7 @@ function py() {
     return null;
   }
 }
-function ck() {
+function fk() {
   var n;
   try {
     (n = window.saveChatDebounced) == null || n.call(window);
@@ -28420,7 +28426,7 @@ class bx {
    */
   saveToChatMetadata(r, i) {
     const l = py();
-    l && (l.extensions || (l.extensions = {}), l.extensions[bo] || (l.extensions[bo] = {}), l.extensions[bo][r] = i, this.log("debug", `已保存到 chat_metadata: ${r} = ${i}`), ck());
+    l && (l.extensions || (l.extensions = {}), l.extensions[bo] || (l.extensions[bo] = {}), l.extensions[bo][r] = i, this.log("debug", `已保存到 chat_metadata: ${r} = ${i}`), fk());
   }
   /**
    * 获取上次总结的楼层
@@ -28544,7 +28550,7 @@ class bx {
       this.cancelRequested = !0, this.log("info", "用户请求取消总结"), Mt.warning("正在取消总结...", "Engram");
     });
     try {
-      const { WorldBookSlotService: y } = await Promise.resolve().then(() => xC);
+      const { WorldBookSlotService: y } = await Promise.resolve().then(() => vC);
       await y.init();
       const b = this._lastSummarizedFloor + 1, v = this.config.bufferSize || 0, x = i - v;
       if (b > x)
@@ -28645,7 +28651,7 @@ class bx {
       const Qe = Er(), O = Fc();
       if (Qe && O)
         try {
-          const R = await Jw.run({
+          const R = await ek.run({
             jsonContent: Ue.content,
             // 直接传递 JSON
             sourceRange: {
@@ -28733,7 +28739,7 @@ class bx {
   }
 }
 const xx = new bx(), vx = {
-  ...sk,
+  ...uk,
   keepRecentCount: 3,
   preserveOriginal: !1,
   previewEnabled: !0
@@ -29071,10 +29077,10 @@ class kx {
     });
   }
 }
-const fk = new kx(), dk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const dk = new kx(), hk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   Injector: kx,
-  injector: fk
+  injector: dk
 }, Symbol.toStringTag, { value: "Module" }));
 class Cx {
   static init() {
@@ -29181,21 +29187,21 @@ class Cx {
   }
 }
 it(Cx, "isInitialized", !1);
-const hk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const mk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   CharacterDeleteService: Cx
 }, Symbol.toStringTag, { value: "Module" }));
-function mk(n) {
+function pk(n) {
   return new Date(n).toTimeString().slice(0, 8);
 }
-const pk = {
+const gk = {
   [Ut.DEBUG]: { text: "text-zinc-500", bg: "bg-zinc-500/10" },
   [Ut.INFO]: { text: "text-blue-400", bg: "bg-blue-500/10" },
   [Ut.SUCCESS]: { text: "text-emerald-400", bg: "bg-emerald-500/10" },
   [Ut.WARN]: { text: "text-amber-400", bg: "bg-amber-500/10" },
   [Ut.ERROR]: { text: "text-red-400", bg: "bg-red-500/10" }
-}, gk = ({ entry: n }) => {
-  const [r, i] = Z.useState(!1), l = n.data !== void 0, s = Uc[n.level], u = pk[n.level];
+}, yk = ({ entry: n }) => {
+  const [r, i] = Z.useState(!1), l = n.data !== void 0, s = Uc[n.level], u = gk[n.level];
   return /* @__PURE__ */ c.jsxs("div", { className: "group", children: [
     /* @__PURE__ */ c.jsxs(
       "div",
@@ -29208,7 +29214,7 @@ const pk = {
         onClick: () => l && i(!r),
         children: [
           /* @__PURE__ */ c.jsx("span", { className: "flex items-center text-zinc-600 shrink-0 mt-0.5 w-3", children: l ? r ? /* @__PURE__ */ c.jsx(pl, { size: 12 }) : /* @__PURE__ */ c.jsx(Qc, { size: 12 }) : null }),
-          /* @__PURE__ */ c.jsx("span", { className: "text-zinc-600 shrink-0 tabular-nums text-[11px]", children: mk(n.timestamp) }),
+          /* @__PURE__ */ c.jsx("span", { className: "text-zinc-600 shrink-0 tabular-nums text-[11px]", children: pk(n.timestamp) }),
           /* @__PURE__ */ c.jsx("span", { className: `
                     shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded
                     ${u.text} ${u.bg}
@@ -29220,13 +29226,13 @@ const pk = {
     ),
     r && l && /* @__PURE__ */ c.jsx("div", { className: "ml-10 mr-2 mb-1 px-3 py-2 bg-zinc-900/50 border-l-2 border-zinc-700 rounded-r text-[10px]", children: /* @__PURE__ */ c.jsx("pre", { className: "m-0 text-zinc-400 whitespace-pre-wrap break-words font-mono", children: JSON.stringify(n.data, null, 2) }) })
   ] });
-}, yk = {
+}, bk = {
   summarize: { label: "总结", color: "bg-blue-500/20 text-blue-400" },
   trim: { label: "修剪", color: "bg-yellow-500/20 text-yellow-500" },
   vectorize: { label: "向量化", color: "bg-purple-500/20 text-purple-400" },
   query: { label: "查询", color: "bg-green-500/20 text-green-400" },
   other: { label: "其他", color: "bg-gray-500/20 text-gray-400" }
-}, bk = ({ status: n }) => {
+}, xk = ({ status: n }) => {
   switch (n) {
     case "pending":
       return /* @__PURE__ */ c.jsx(Ao, { size: 14, className: "animate-spin text-yellow-400" });
@@ -29235,13 +29241,13 @@ const pk = {
     case "error":
       return /* @__PURE__ */ c.jsx(_o, { size: 14, className: "text-red-400" });
   }
-}, xk = (n) => new Date(n).toLocaleTimeString("zh-CN", {
+}, vk = (n) => new Date(n).toLocaleTimeString("zh-CN", {
   hour12: !1,
   hour: "2-digit",
   minute: "2-digit",
   second: "2-digit"
-}), vk = (n) => n === void 0 ? "-" : n < 1e3 ? `${n}ms` : `${(n / 1e3).toFixed(1)}s`, Sk = ({ sent: n, received: r }) => {
-  const [i, l] = Z.useState(!1), s = yk[n.type];
+}), Sk = (n) => n === void 0 ? "-" : n < 1e3 ? `${n}ms` : `${(n / 1e3).toFixed(1)}s`, wk = ({ sent: n, received: r }) => {
+  const [i, l] = Z.useState(!1), s = bk[n.type];
   return /* @__PURE__ */ c.jsxs("div", { className: "border border-border rounded-lg overflow-hidden bg-card", children: [
     /* @__PURE__ */ c.jsxs(
       "div",
@@ -29253,8 +29259,8 @@ const pk = {
           /* @__PURE__ */ c.jsx("span", { className: `px-2 py-0.5 rounded text-xs font-medium ${s.color}`, children: s.label }),
           n.model && /* @__PURE__ */ c.jsx("span", { className: "px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 truncate max-w-[100px]", title: `模型: ${n.model}`, children: n.model }),
           n.character && /* @__PURE__ */ c.jsx("span", { className: "px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 truncate max-w-[80px]", title: `角色: ${n.character}`, children: n.character }),
-          /* @__PURE__ */ c.jsx("span", { className: "text-xs text-muted-foreground", children: xk(n.timestamp) }),
-          /* @__PURE__ */ c.jsx(bk, { status: (r == null ? void 0 : r.status) || n.status }),
+          /* @__PURE__ */ c.jsx("span", { className: "text-xs text-muted-foreground", children: vk(n.timestamp) }),
+          /* @__PURE__ */ c.jsx(xk, { status: (r == null ? void 0 : r.status) || n.status }),
           n.floorRange && /* @__PURE__ */ c.jsxs("span", { className: "text-xs text-muted-foreground", children: [
             "楼层 #",
             n.floorRange[0],
@@ -29263,7 +29269,7 @@ const pk = {
           ] }),
           /* @__PURE__ */ c.jsxs("span", { className: "ml-auto text-xs text-muted-foreground flex items-center gap-1", children: [
             /* @__PURE__ */ c.jsx(Mv, { size: 12 }),
-            vk((r == null ? void 0 : r.duration) || n.duration)
+            Sk((r == null ? void 0 : r.duration) || n.duration)
           ] })
         ]
       }
@@ -29307,7 +29313,7 @@ const pk = {
       ] })
     ] })
   ] });
-}, wk = () => {
+}, kk = () => {
   const [n, r] = Z.useState(ka.getPaired());
   return Z.useEffect(() => ka.subscribe(() => {
     r(ka.getPaired());
@@ -29336,7 +29342,7 @@ const pk = {
       /* @__PURE__ */ c.jsx(My, { size: 48, className: "opacity-30" }),
       /* @__PURE__ */ c.jsx("p", { className: "text-sm", children: "暂无模型调用记录" }),
       /* @__PURE__ */ c.jsx("p", { className: "text-xs", children: "触发总结或向量化后，调用记录将显示在这里" })
-    ] }) : /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-3", children: n.map(({ sent: i, received: l }) => /* @__PURE__ */ c.jsx(Sk, { sent: i, received: l }, i.id)) }) })
+    ] }) : /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-3", children: n.map(({ sent: i, received: l }) => /* @__PURE__ */ c.jsx(wk, { sent: i, received: l }, i.id)) }) })
   ] });
 }, Ex = ({ tabs: n, activeTab: r, onChange: i, sticky: l = !0, top: s = 0, className: u = "", actions: d }) => /* @__PURE__ */ c.jsxs(
   "div",
@@ -29381,10 +29387,10 @@ const pk = {
     /* @__PURE__ */ c.jsx(Ex, { ...s }),
     l
   );
-}, kk = [
+}, Ck = [
   { id: "runtime", label: "运行日志", icon: /* @__PURE__ */ c.jsx(ru, { size: 14 }) },
   { id: "model", label: "模型日志", icon: /* @__PURE__ */ c.jsx(iu, { size: 14 }) }
-], Ck = [
+], Ek = [
   "ALL",
   "Logger",
   "EventBus",
@@ -29394,7 +29400,7 @@ const pk = {
   "CORE/Memory",
   "UI/GraphView",
   "UI/MemoryStream"
-], Ek = ({ initialTab: n }) => {
+], jk = ({ initialTab: n }) => {
   const [r, i] = Z.useState(n || "runtime"), [l, s] = Z.useState([]), [u, d] = Z.useState([]), [m, y] = Z.useState(""), [b, v] = Z.useState(-1), [x, j] = Z.useState("ALL"), [C, N] = Z.useState(!0), [L, V] = Z.useState(!1), [M, ee] = Z.useState(!1), te = Z.useRef(null);
   Z.useEffect(() => {
     s(Le.getLogs());
@@ -29428,7 +29434,7 @@ const pk = {
     /* @__PURE__ */ c.jsx(
       af,
       {
-        tabs: kk,
+        tabs: Ck,
         activeTab: r,
         onChange: (B) => i(B)
       }
@@ -29488,7 +29494,7 @@ const pk = {
               ]
             }
           ),
-          M && /* @__PURE__ */ c.jsx("div", { className: "absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20 min-w-[120px] py-1 max-h-48 overflow-y-auto flex flex-col", children: Ck.map((B) => /* @__PURE__ */ c.jsx(
+          M && /* @__PURE__ */ c.jsx("div", { className: "absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20 min-w-[120px] py-1 max-h-48 overflow-y-auto flex flex-col", children: Ek.map((B) => /* @__PURE__ */ c.jsx(
             "button",
             {
               className: "block w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors",
@@ -29550,7 +29556,7 @@ const pk = {
         /* @__PURE__ */ c.jsx(ru, { size: 32, strokeWidth: 1, className: "opacity-30" }),
         /* @__PURE__ */ c.jsx("p", { className: "text-sm font-light", children: "暂无日志记录" })
       ] }) : /* @__PURE__ */ c.jsxs(c.Fragment, { children: [
-        u.map((B) => /* @__PURE__ */ c.jsx(gk, { entry: B }, B.id)),
+        u.map((B) => /* @__PURE__ */ c.jsx(yk, { entry: B }, B.id)),
         /* @__PURE__ */ c.jsx("div", { ref: te })
       ] }) }),
       /* @__PURE__ */ c.jsxs("div", { className: "text-[10px] text-muted-foreground py-2 border-t border-border", children: [
@@ -29559,19 +29565,19 @@ const pk = {
         u.length !== l.length && ` · ${u.length} 条匹配`
       ] })
     ] }),
-    r === "model" && /* @__PURE__ */ c.jsx("div", { className: "flex-1 overflow-hidden", children: /* @__PURE__ */ c.jsx(wk, {}) })
+    r === "model" && /* @__PURE__ */ c.jsx("div", { className: "flex-1 overflow-hidden", children: /* @__PURE__ */ c.jsx(kk, {}) })
   ] });
-}, jk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, _k = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  DevLog: Ek
-}, Symbol.toStringTag, { value: "Module" })), _k = {
+  DevLog: jk
+}, Symbol.toStringTag, { value: "Module" })), Nk = {
   default: "text-muted-foreground bg-muted/50",
   primary: "text-primary bg-primary/10",
   blue: "text-blue-500 bg-blue-500/10",
   purple: "text-purple-500 bg-purple-500/10",
   orange: "text-orange-500 bg-orange-500/10",
   emerald: "text-emerald-500 bg-emerald-500/10"
-}, Nk = ({
+}, Tk = ({
   icon: n,
   title: r,
   subtitle: i,
@@ -29627,7 +29633,7 @@ const pk = {
               {
                 className: `
                                 text-[10px] px-1.5 py-0.5 rounded-sm font-medium flex-shrink-0
-                                ${_k[N.color || "default"]}
+                                ${Nk[N.color || "default"]}
                             `,
                 children: N.text
               },
@@ -29662,7 +29668,7 @@ const pk = {
       ]
     }
   );
-}, Tk = ({
+}, Ak = ({
   preset: n,
   isSelected: r,
   onSelect: i,
@@ -29673,7 +29679,7 @@ const pk = {
   var y;
   const d = n.source === "tavern" || n.source === "tavern_profile" ? Fy : Dv, m = n.source === "custom" ? ((y = n.custom) == null ? void 0 : y.model) || "未设置" : "使用当前";
   return /* @__PURE__ */ c.jsx(
-    Nk,
+    Tk,
     {
       icon: /* @__PURE__ */ c.jsx(d, { size: 14 }),
       title: n.name,
@@ -30213,19 +30219,19 @@ class ni {
   }
 }
 it(ni, "DEFAULT_TIMEOUT", 1e4);
-const Ak = [
+const zk = [
   { value: "openai", label: "OpenAI" },
   { value: "anthropic", label: "Anthropic" },
   { value: "ollama", label: "Ollama" },
   { value: "vllm", label: "vLLM" },
   { value: "azure", label: "Azure OpenAI" },
   { value: "custom", label: "自定义" }
-], zk = [
+], Mk = [
   { value: "tavern", label: "使用酒馆当前配置" },
   { value: "tavern_profile", label: "使用酒馆配置文件" },
   { value: "custom", label: "自定义 API 配置" }
 ];
-function Mk() {
+function Ok() {
   var n, r, i, l;
   try {
     const s = (i = (r = (n = window.SillyTavern) == null ? void 0 : n.getContext) == null ? void 0 : r.call(n)) == null ? void 0 : i.extensionSettings;
@@ -30243,7 +30249,7 @@ const gy = ({
   const [l, s] = Z.useState([]), [u, d] = Z.useState(!1), [m, y] = Z.useState([]), [b, v] = Z.useState(!1), [x, j] = Z.useState(null), C = () => {
     d(!0);
     try {
-      const ie = Mk();
+      const ie = Ok();
       s(ie);
     } finally {
       d(!1);
@@ -30312,7 +30318,7 @@ const gy = ({
           label: "配置源",
           value: n.source,
           onChange: ee,
-          options: zk,
+          options: Mk,
           description: "选择 API 配置的来源"
         }
       )
@@ -30366,7 +30372,7 @@ const gy = ({
           label: "API 类型",
           value: ((xe = n.custom) == null ? void 0 : xe.apiSource) || "openai",
           onChange: (ie) => M("apiSource", ie),
-          options: Ak
+          options: zk
         }
       ),
       /* @__PURE__ */ c.jsx(
@@ -30496,7 +30502,7 @@ const gy = ({
       )
     ] })
   ] });
-}, Ok = [
+}, Dk = [
   { value: "custom", label: "自定义 (OpenAI 兼容)" },
   { value: "transformers", label: "Transformers (本地)" },
   { value: "openai", label: "OpenAI Embeddings" },
@@ -30514,7 +30520,7 @@ const gy = ({
   cohere: "embed-multilingual-v3.0",
   jina: "jina-embeddings-v3",
   voyage: "voyage-large-2"
-}, by = ["custom", "ollama", "vllm"], xy = ["custom", "openai", "cohere", "jina", "voyage"], Dk = ({
+}, by = ["custom", "ollama", "vllm"], xy = ["custom", "openai", "cohere", "jina", "voyage"], Rk = ({
   config: n,
   onChange: r
 }) => {
@@ -30579,7 +30585,7 @@ const gy = ({
           label: "向量源",
           value: n.source,
           onChange: (N) => l(N),
-          options: Ok,
+          options: Dk,
           description: "选择向量化服务提供商"
         }
       ),
@@ -30662,7 +30668,7 @@ const gy = ({
       }
     ) })
   ] });
-}, Rk = ({
+}, Lk = ({
   config: n,
   onChange: r
 }) => {
@@ -30794,7 +30800,7 @@ const gy = ({
     ] })
   ] });
 };
-function Lk(n) {
+function Bk(n) {
   switch (n) {
     case "summary":
       return "text-blue-500 bg-blue-500/10 border border-blue-500/20";
@@ -30806,11 +30812,11 @@ function Lk(n) {
       return "text-muted-foreground bg-muted border border-border";
   }
 }
-function Bk(n) {
+function Uk(n) {
   var r;
   return ((r = Gc.find((i) => i.value === n)) == null ? void 0 : r.label) || n;
 }
-const Uk = ({
+const Ik = ({
   template: n,
   isSelected: r = !1,
   onSelect: i,
@@ -30899,7 +30905,7 @@ const Uk = ({
             /* @__PURE__ */ c.jsxs("div", { className: "flex items-center justify-between gap-2", children: [
               /* @__PURE__ */ c.jsx("h4", { className: `text-sm font-medium truncate ${r ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"} ${!n.enabled && "line-through"}`, children: n.name }),
               /* @__PURE__ */ c.jsxs("div", { className: "flex items-center gap-1.5 flex-shrink-0", children: [
-                /* @__PURE__ */ c.jsx("span", { className: `text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${Lk(n.category)}`, children: Bk(n.category) }),
+                /* @__PURE__ */ c.jsx("span", { className: `text-[10px] px-1.5 py-0.5 rounded-sm font-medium ${Bk(n.category)}`, children: Uk(n.category) }),
                 n.isBuiltIn && /* @__PURE__ */ c.jsx("span", { className: "text-[10px] px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground", children: "BUILTIN" })
               ] })
             ] }),
@@ -30949,7 +30955,7 @@ const Uk = ({
       ]
     }
   );
-}, Ik = ({
+}, qk = ({
   templates: n,
   selectedId: r,
   onSelect: i,
@@ -31005,7 +31011,7 @@ const Uk = ({
           /* @__PURE__ */ c.jsx("div", { className: "h-px bg-border flex-1" })
         ] }),
         /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-1", children: x.templates.map((j) => /* @__PURE__ */ c.jsx(
-          Uk,
+          Ik,
           {
             template: j,
             isSelected: r === j.id,
@@ -31025,7 +31031,7 @@ const Uk = ({
       ] })
     ] })
   ] });
-}, qk = [
+}, Hk = [
   { name: "{{chatHistory}}", desc: "待处理的对话历史" },
   { name: "{{context}}", desc: "角色卡设定" },
   { name: "{{char}}", desc: "角色名" },
@@ -31106,13 +31112,13 @@ const Uk = ({
     ] }),
     /* @__PURE__ */ c.jsxs("div", { className: "px-3 py-2 bg-muted/30 rounded border border-border", children: [
       /* @__PURE__ */ c.jsx("div", { className: "text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider", children: "可用宏" }),
-      /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-1", children: qk.map((y) => /* @__PURE__ */ c.jsxs("div", { className: "flex items-center gap-2 text-[10px]", children: [
+      /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-1", children: Hk.map((y) => /* @__PURE__ */ c.jsxs("div", { className: "flex items-center gap-2 text-[10px]", children: [
         /* @__PURE__ */ c.jsx("code", { className: "px-1.5 py-0.5 bg-muted rounded text-primary font-mono whitespace-nowrap", children: y.name }),
         /* @__PURE__ */ c.jsx("span", { className: "text-muted-foreground", children: y.desc })
       ] }, y.name)) })
     ] })
   ] });
-}, Hk = ({
+}, Pk = ({
   rules: n,
   selectedId: r,
   onSelect: i,
@@ -31192,7 +31198,7 @@ const Uk = ({
     )),
     n.length === 0 && /* @__PURE__ */ c.jsx("div", { className: "text-center p-8 border border-dashed border-border rounded-lg", children: /* @__PURE__ */ c.jsx("p", { className: "text-xs text-muted-foreground", children: "无规则" }) })
   ] })
-] }), Pk = [
+] }), Fk = [
   { value: "g", label: "全局匹配", description: "匹配所有结果" },
   { value: "i", label: "忽略大小写", description: "不区分大小写" },
   { value: "m", label: "多行模式", description: "^$ 匹配每行" },
@@ -31290,7 +31296,7 @@ const Uk = ({
       ] }),
       /* @__PURE__ */ c.jsxs("div", { className: "flex flex-col gap-1.5", children: [
         /* @__PURE__ */ c.jsx("label", { className: "text-sm font-medium text-foreground", children: "匹配选项" }),
-        /* @__PURE__ */ c.jsx("div", { className: "flex flex-wrap gap-2", children: Pk.map((x) => /* @__PURE__ */ c.jsxs(
+        /* @__PURE__ */ c.jsx("div", { className: "flex flex-wrap gap-2", children: Fk.map((x) => /* @__PURE__ */ c.jsxs(
           "button",
           {
             className: `px-2 py-1 text-xs rounded-md border transition-colors ${n.flags.includes(x.value) ? "bg-primary-20 border-primary text-primary" : "bg-background border-border text-muted-foreground hover:bg-muted"}`,
@@ -31343,7 +31349,7 @@ const Uk = ({
       ] })
     ] })
   ] });
-}, Fk = ({
+}, $k = ({
   config: n,
   onChange: r,
   worldbookStructure: i = {},
@@ -31614,11 +31620,11 @@ class am {
     }
   }
 }
-const $k = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Vk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   WorldBookStateService: am
 }, Symbol.toStringTag, { value: "Module" }));
-function Vk(n, r) {
+function Kk(n, r) {
   const i = [];
   for (const s of n.filter((u) => u.isBuiltIn)) {
     const u = r.find(
@@ -31629,7 +31635,7 @@ function Vk(n, r) {
   const l = r.filter((s) => !s.isBuiltIn);
   return i.push(...l), i;
 }
-function Kk() {
+function Gk() {
   const [n, r] = Z.useState(dy), [i, l] = Z.useState(null), [s, u] = Z.useState(null), [d, m] = Z.useState(!1), [y, b] = Z.useState([...eu]), [v, x] = Z.useState(null), [j, C] = Z.useState({}), [N, L] = Z.useState({}), [V, M] = Z.useState(null), ee = Z.useCallback(async () => {
     var Ke;
     const fe = await Et.getWorldbookStructure();
@@ -31653,7 +31659,7 @@ function Kk() {
         // 合并预设：保留用户预设，确保至少有一个默认
         llmPresets: ((Ce = fe.llmPresets) == null ? void 0 : Ce.length) > 0 ? fe.llmPresets : Ke.llmPresets,
         // 合并模板：保留用户对内置模板的修改，同时添加用户自定义模板
-        promptTemplates: Vk(
+        promptTemplates: Kk(
           Ke.promptTemplates,
           fe.promptTemplates || []
         )
@@ -31803,11 +31809,11 @@ function Kk() {
     save: A
   };
 }
-const wy = 768, Gk = [
+const wy = 768, Yk = [
   { id: "llm", label: "LLM 预设", icon: Xc },
   { id: "vector", label: "向量化", icon: om },
   { id: "rerank", label: "Rerank", icon: Iy }
-], Yk = ({ initialTab: n }) => {
+], Qk = ({ initialTab: n }) => {
   const [r, i] = Z.useState(n || "model"), [l, s] = Z.useState("llm"), [u, d] = Z.useState(window.innerWidth < wy), [m, y] = Z.useState(!1);
   Z.useEffect(() => {
     const ce = () => {
@@ -31848,7 +31854,7 @@ const wy = 768, Gk = [
     toggleWorldbook: O,
     toggleEntry: R,
     refreshWorldbooks: he
-  } = Kk(), A = (ce) => {
+  } = Gk(), A = (ce) => {
     ce(), u && y(!0);
   }, fe = () => {
     y(!1);
@@ -31944,7 +31950,7 @@ const wy = 768, Gk = [
         /* @__PURE__ */ c.jsx(
           Ex,
           {
-            tabs: Gk.map((ce) => ({ ...ce, icon: /* @__PURE__ */ c.jsx(ce.icon, { size: 14 }) })),
+            tabs: Yk.map((ce) => ({ ...ce, icon: /* @__PURE__ */ c.jsx(ce.icon, { size: 14 }) })),
             activeTab: l,
             onChange: (ce) => s(ce),
             sticky: !1,
@@ -31962,7 +31968,7 @@ const wy = 768, Gk = [
               /* @__PURE__ */ c.jsx("button", { className: "text-muted-foreground hover:text-foreground transition-colors", onClick: V, children: /* @__PURE__ */ c.jsx(Hy, { size: 16 }) })
             ] }),
             /* @__PURE__ */ c.jsx("div", { className: "flex flex-col gap-1", children: b.llmPresets.map((ce) => /* @__PURE__ */ c.jsx(
-              Tk,
+              Ak,
               {
                 preset: ce,
                 isSelected: b.selectedPresetId === ce.id,
@@ -31979,14 +31985,14 @@ const wy = 768, Gk = [
             /* @__PURE__ */ c.jsx("p", { className: "text-sm font-light", children: "选择或创建一个预设开始配置" })
           ] }) })
         ] }),
-        l === "vector" && /* @__PURE__ */ c.jsx(Dk, { config: b.vectorConfig, onChange: ye }),
-        l === "rerank" && /* @__PURE__ */ c.jsx(Rk, { config: b.rerankConfig, onChange: _e })
+        l === "vector" && /* @__PURE__ */ c.jsx(Rk, { config: b.vectorConfig, onChange: ye }),
+        l === "rerank" && /* @__PURE__ */ c.jsx(Lk, { config: b.rerankConfig, onChange: _e })
       ] }),
       r === "prompt" && /* @__PURE__ */ c.jsxs("div", { className: `flex gap-6 h-full ${u ? "flex-col" : ""}`, children: [
         /* @__PURE__ */ c.jsx("div", { className: `
                             ${u ? "w-full" : "w-[30%] min-w-[280px] border-r border-border/50 pr-4"}
                         `, children: /* @__PURE__ */ c.jsx(
-          Ik,
+          qk,
           {
             templates: b.promptTemplates,
             selectedId: (x == null ? void 0 : x.id) || null,
@@ -32013,7 +32019,7 @@ const wy = 768, Gk = [
         /* @__PURE__ */ c.jsx("div", { className: `
                             ${u ? "w-full" : "w-[30%] min-w-[280px] border-r border-border/50 pr-4"}
                         `, children: /* @__PURE__ */ c.jsx(
-          Hk,
+          Pk,
           {
             rules: C,
             selectedId: (N == null ? void 0 : N.id) || null,
@@ -32030,7 +32036,7 @@ const wy = 768, Gk = [
         ] }) })
       ] }),
       r === "worldbook" && /* @__PURE__ */ c.jsx("div", { className: "max-w-2xl py-4", children: /* @__PURE__ */ c.jsx(
-        Fk,
+        $k,
         {
           config: b.worldbookConfig,
           onChange: q,
@@ -32043,10 +32049,10 @@ const wy = 768, Gk = [
       ) })
     ] })
   ] });
-}, Qk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, Xk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  APIPresets: Yk
-}, Symbol.toStringTag, { value: "Module" })), Xk = () => {
+  APIPresets: Qk
+}, Symbol.toStringTag, { value: "Module" })), Zk = () => {
   const [n, r] = Z.useState("claudeDark");
   Z.useEffect(() => {
     r(ja.getTheme());
@@ -32108,7 +32114,7 @@ const wy = 768, Gk = [
       s.id
     )) })
   ] });
-}, Zk = () => {
+}, Wk = () => {
   var u, d, m, y, b;
   const [n, r] = Z.useState(((u = et.getSettings().summarizerConfig) == null ? void 0 : u.previewEnabled) ?? !0), [, i] = Z.useState({});
   Z.useEffect(() => {
@@ -32120,7 +32126,7 @@ const wy = 768, Gk = [
     /* @__PURE__ */ c.jsxs("div", { className: "p-6 space-y-8", children: [
       /* @__PURE__ */ c.jsxs("section", { children: [
         /* @__PURE__ */ c.jsx("h3", { className: "text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4", children: "外观" }),
-        /* @__PURE__ */ c.jsx(Xk, {})
+        /* @__PURE__ */ c.jsx(Zk, {})
       ] }),
       /* @__PURE__ */ c.jsxs("section", { children: [
         /* @__PURE__ */ c.jsx("h3", { className: "text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4", children: "毛玻璃特效 (Glass Effect)" }),
@@ -32276,10 +32282,10 @@ const wy = 768, Gk = [
       ] }) })
     ] })
   ] });
-}, Wk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, Jk = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  Settings: Zk
-}, Symbol.toStringTag, { value: "Module" })), Jk = {
+  Settings: Wk
+}, Symbol.toStringTag, { value: "Module" })), eC = {
   none: "",
   sm: "my-2",
   md: "my-4",
@@ -32291,7 +32297,7 @@ const wy = 768, Gk = [
   responsive: l = !1,
   spacing: s = "none"
 }) => {
-  const u = Jk[s];
+  const u = eC[s];
   return l ? /* @__PURE__ */ c.jsxs(c.Fragment, { children: [
     /* @__PURE__ */ c.jsx(
       "div",
@@ -32321,7 +32327,7 @@ const wy = 768, Gk = [
     }
   );
 };
-function eC({ score: n }) {
+function tC({ score: n }) {
   const r = Math.round(n * 5);
   return /* @__PURE__ */ c.jsx("div", { className: "flex gap-0.5", children: [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ c.jsx(
     "span",
@@ -32331,7 +32337,7 @@ function eC({ score: n }) {
     i
   )) });
 }
-function tC({ isEmbedded: n }) {
+function nC({ isEmbedded: n }) {
   return n ? /* @__PURE__ */ c.jsxs(
     "span",
     {
@@ -32344,7 +32350,7 @@ function tC({ isEmbedded: n }) {
     }
   ) : null;
 }
-function nC({ event: n }) {
+function rC({ event: n }) {
   const r = n.structured_kv, i = [];
   return r.time_anchor && i.push(r.time_anchor), r.location && i.push(r.location), r.role && r.role.length > 0 && i.push(r.role.join(", ")), i.length === 0 ? null : /* @__PURE__ */ c.jsxs("p", { className: "text-xs text-muted-foreground truncate", children: [
     "(",
@@ -32352,7 +32358,7 @@ function nC({ event: n }) {
     ")"
   ] });
 }
-const rC = ({
+const iC = ({
   event: n,
   isSelected: r = !1,
   isCompact: i = !1,
@@ -32422,11 +32428,11 @@ const rC = ({
             }
           ),
           /* @__PURE__ */ c.jsx("span", { className: "text-xs font-medium text-primary", children: y }),
-          /* @__PURE__ */ c.jsx(tC, { isEmbedded: n.is_embedded }),
+          /* @__PURE__ */ c.jsx(nC, { isEmbedded: n.is_embedded }),
           /* @__PURE__ */ c.jsx("div", { className: "flex-1" }),
-          /* @__PURE__ */ c.jsx(eC, { score: n.significance_score })
+          /* @__PURE__ */ c.jsx(tC, { score: n.significance_score })
         ] }),
-        /* @__PURE__ */ c.jsx(nC, { event: n }),
+        /* @__PURE__ */ c.jsx(rC, { event: n }),
         /* @__PURE__ */ c.jsx("p", { className: "text-sm text-foreground mt-1 line-clamp-2", children: b }),
         /* @__PURE__ */ c.jsxs("div", { className: "flex items-center gap-2 mt-2 text-xs text-muted-foreground", children: [
           /* @__PURE__ */ c.jsxs("span", { children: [
@@ -32459,7 +32465,7 @@ const rC = ({
   fontSize: "14px",
   width: "100%",
   color: "var(--foreground, inherit)"
-}, iC = {
+}, aC = {
   ...ko,
   resize: "vertical",
   minHeight: "80px"
@@ -32518,7 +32524,7 @@ const rC = ({
             d(_e.target.value), K();
           },
           rows: 4,
-          style: iC,
+          style: aC,
           className: "placeholder:text-muted-foreground/40 focus:border-primary transition-colors",
           placeholder: "事件摘要..."
         }
@@ -32732,10 +32738,10 @@ const rC = ({
       }
     ) })
   ] });
-}, Cy = 768, aC = [
+}, Cy = 768, lC = [
   { id: "list", label: "列表", icon: /* @__PURE__ */ c.jsx(qy, { size: 14 }) },
   { id: "graph", label: "图谱", icon: /* @__PURE__ */ c.jsx(Uy, { size: 14 }) }
-], lC = () => {
+], oC = () => {
   const [n, r] = Z.useState([]), [i, l] = Z.useState(null), [s, u] = Z.useState(/* @__PURE__ */ new Set()), [d, m] = Z.useState(""), [y, b] = Z.useState(!0), [v, x] = Z.useState(window.innerWidth < Cy), [j, C] = Z.useState(!1), [N, L] = Z.useState("list"), V = Na.getState();
   Z.useEffect(() => {
     const q = () => {
@@ -32800,7 +32806,7 @@ const rC = ({
     /* @__PURE__ */ c.jsx(
       af,
       {
-        tabs: aC,
+        tabs: lC,
         activeTab: N,
         onChange: (q) => L(q),
         actions: /* @__PURE__ */ c.jsxs("div", { className: "flex items-center gap-2", children: [
@@ -32866,7 +32872,7 @@ const rC = ({
           /* @__PURE__ */ c.jsx(Oy, { size: 48, className: "opacity-20" }),
           /* @__PURE__ */ c.jsx("p", { className: "text-sm font-light", children: d ? "没有找到匹配的事件" : "暂无记忆事件" })
         ] }) : /* @__PURE__ */ c.jsx("div", { className: v ? "" : "space-y-1", children: ee.map((q) => /* @__PURE__ */ c.jsx(
-          rC,
+          iC,
           {
             event: q,
             isSelected: q.id === i,
@@ -32894,10 +32900,10 @@ const rC = ({
       /* @__PURE__ */ c.jsx("p", { className: "text-sm font-light", children: "图谱可视化功能开发中..." })
     ] })
   ] });
-}, oC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, sC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  MemoryStream: lC
-}, Symbol.toStringTag, { value: "Module" })), sC = ({ links: n, onNavigate: r, className: i = "" }) => n.length === 0 ? null : /* @__PURE__ */ c.jsx("div", { className: `flex items-center gap-4 ${i}`, children: n.map((l) => {
+  MemoryStream: oC
+}, Symbol.toStringTag, { value: "Module" })), uC = ({ links: n, onNavigate: r, className: i = "" }) => n.length === 0 ? null : /* @__PURE__ */ c.jsx("div", { className: `flex items-center gap-4 ${i}`, children: n.map((l) => {
   const s = l.icon || Hv;
   return /* @__PURE__ */ c.jsxs(
     "button",
@@ -32919,11 +32925,11 @@ const rC = ({
   cohere: "https://api.cohere.ai/v1/embed",
   jina: "https://api.jina.ai/v1/embeddings",
   voyage: "https://api.voyageai.com/v1/embeddings"
-}, uC = 5;
-class cC {
+}, cC = 5;
+class fC {
   constructor() {
     it(this, "config", null);
-    it(this, "concurrency", uC);
+    it(this, "concurrency", cC);
     it(this, "stopSignal", !1);
   }
   /**
@@ -33222,7 +33228,7 @@ class cC {
     };
   }
 }
-const Or = new cC(), Yc = {
+const Or = new fC(), Yc = {
   keepRecentCount: 3,
   previewEnabled: !0
 };
@@ -33396,15 +33402,15 @@ Significance: ${i.significance_score}`;
     };
   }
 }
-const fC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const dC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   DEFAULT_TRIM_CONFIG: Yc,
   EventTrimmer: _x,
-  eventTrimmer: fC
-}, Symbol.toStringTag, { value: "Module" })), dC = [
+  eventTrimmer: dC
+}, Symbol.toStringTag, { value: "Module" })), hC = [
   { id: "token", label: "Token 数", icon: Cv },
   { id: "count", label: "活跃事件数", icon: Qv }
-], hC = () => {
+], mC = () => {
   const [n, r] = Z.useState(null), [i, l] = Z.useState(!1), [s, u] = Z.useState(!1), [d, m] = Z.useState({
     autoEnabled: !0,
     floorInterval: 10,
@@ -33730,7 +33736,7 @@ const fC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
       /* @__PURE__ */ c.jsxs("div", { className: `space-y-6 transition-opacity ${y.enabled ? "opacity-100" : "opacity-40 pointer-events-none"}`, children: [
         /* @__PURE__ */ c.jsxs("div", { className: "space-y-3", children: [
           /* @__PURE__ */ c.jsx("span", { className: "text-xs text-muted-foreground", children: "触发条件" }),
-          /* @__PURE__ */ c.jsx("div", { className: "flex gap-6", children: dC.map((ae) => /* @__PURE__ */ c.jsxs(
+          /* @__PURE__ */ c.jsx("div", { className: "flex gap-6", children: hC.map((ae) => /* @__PURE__ */ c.jsxs(
             "label",
             {
               className: "flex items-center gap-2 cursor-pointer group",
@@ -33852,7 +33858,7 @@ const fC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
       ] })
     ] })
   ] });
-}, mC = () => {
+}, pC = () => {
   const [n, r] = Z.useState({ total: 0, embedded: 0, pending: 0 }), [i, l] = Z.useState(null), [s, u] = Z.useState(!1), [d, m] = Z.useState(!0), [y, b] = Z.useState(null), [v, x] = Z.useState(null), [j, C] = Z.useState({ ...fy }), [N, L] = Z.useState(null);
   Z.useEffect(() => {
     V();
@@ -34075,14 +34081,14 @@ const fC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
       ] })
     ] })
   ] });
-}, pC = [
+}, gC = [
   { id: "summary", label: "记忆摘要", icon: /* @__PURE__ */ c.jsx(sm, { size: 16 }) },
   { id: "vectorization", label: "向量化", icon: /* @__PURE__ */ c.jsx(By, { size: 16 }) },
   { id: "batch", label: "批量处理", icon: /* @__PURE__ */ c.jsx(Iy, { size: 16 }) }
-], gC = [
+], yC = [
   { id: "devlog", label: "模型日志", icon: _4, linkTo: "devlog:model" },
   { id: "presets", label: "提示词模板", icon: gv, linkTo: "presets:prompt" }
-], yC = ({ onNavigate: n }) => {
+], bC = ({ onNavigate: n }) => {
   const [r, i] = Z.useState("summary");
   return /* @__PURE__ */ c.jsxs("div", { className: "flex flex-col h-full", children: [
     /* @__PURE__ */ c.jsxs("div", { className: "mb-6", children: [
@@ -34093,30 +34099,30 @@ const fC = new _x(), Lh = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.d
     /* @__PURE__ */ c.jsx(
       af,
       {
-        tabs: pC,
+        tabs: gC,
         activeTab: r,
         onChange: (l) => i(l),
         actions: /* @__PURE__ */ c.jsx(
-          sC,
+          uC,
           {
-            links: gC,
+            links: yC,
             onNavigate: (l) => n == null ? void 0 : n(l)
           }
         )
       }
     ),
     /* @__PURE__ */ c.jsxs("div", { className: "flex-1 overflow-y-auto no-scrollbar", children: [
-      r === "summary" && /* @__PURE__ */ c.jsx(hC, {}),
-      r === "vectorization" && /* @__PURE__ */ c.jsx(mC, {}),
+      r === "summary" && /* @__PURE__ */ c.jsx(mC, {}),
+      r === "vectorization" && /* @__PURE__ */ c.jsx(pC, {}),
       r === "batch" && /* @__PURE__ */ c.jsxs("div", { className: "flex flex-col items-center justify-center h-48 text-muted-foreground gap-2", children: [
         /* @__PURE__ */ c.jsx(Sv, { size: 32, strokeWidth: 1, className: "opacity-30" }),
         /* @__PURE__ */ c.jsx("p", { className: "text-sm font-light", children: "批量处理功能开发中..." })
       ] })
     ] })
   ] });
-}, bC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+}, xC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  ProcessingView: yC
+  ProcessingView: bC
 }, Symbol.toStringTag, { value: "Module" })), Ey = "engram_macro_slot", jy = "Engram Memory Context";
 class Nx {
   /**
@@ -34172,7 +34178,7 @@ class Nx {
   }
 }
 it(Nx, "isInitialized", !1);
-const xC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const vC = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   WorldBookSlotService: Nx
 }, Symbol.toStringTag, { value: "Module" }));

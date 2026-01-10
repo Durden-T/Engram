@@ -3,6 +3,7 @@ import { getDbForChat, tryGetDbForChat, type ChatDatabase } from '@/services/dat
 import { chatManager } from '@/services/database/ChatManager';
 import { WorldInfoService } from '@/tavern/api';
 import { getCurrentChatId } from '@/tavern/context';
+import { generateUUID } from '@/utils';
 import type { EventNode, ScopeState } from '@/services/types/graph';
 
 interface MemoryState {
@@ -117,7 +118,7 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
 
         const event: EventNode = {
             ...eventData,
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             timestamp: Date.now(),
             is_embedded: eventData.is_embedded ?? false, // V0.7: 默认未嵌入
             is_archived: eventData.is_archived ?? false, // V0.7: 默认未归档
