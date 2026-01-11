@@ -284,6 +284,47 @@ export const DEFAULT_REGEX_CONFIG: GlobalRegexConfig = {
   enableEngramRegex: true,
 };
 
+// ==================== RAG 召回配置 (V0.8.5) ====================
+
+/**
+ * 召回模式
+ * - full: 预处理 + Embedding + Rerank (顶配)
+ * - standard: Embedding + Rerank (标准)
+ * - light: 仅 Embedding (轻量)
+ * - llm_only: LLM 直接召回 (暴力，无向量模型兜底)
+ */
+export type RecallMode = 'full' | 'standard' | 'light' | 'llm_only';
+
+/**
+ * 召回配置 (V0.8.5)
+ */
+export interface RecallConfig {
+  /** 是否启用召回 */
+  enabled: boolean;
+  /** 召回模式 */
+  mode: RecallMode;
+  /** Embedding 设置 */
+  embedding: {
+    /** 初筛数量 (Top-K) */
+    topK: number;
+    /** 最低相似度阈值 (0-1) */
+    minScoreThreshold: number;
+  };
+  // 注: Rerank 设置复用 RerankConfig，不在此重复定义
+}
+
+/**
+ * 默认召回配置
+ */
+export const DEFAULT_RECALL_CONFIG: RecallConfig = {
+  enabled: false,
+  mode: 'standard',
+  embedding: {
+    topK: 20,
+    minScoreThreshold: 0.3,
+  },
+};
+
 // ==================== 完整配置 ====================
 
 /**
@@ -308,6 +349,8 @@ export interface EngramAPISettings {
   trimConfig?: TrimConfig;
   /** V0.7: 嵌入配置 */
   embeddingConfig?: EmbeddingConfig;
+  /** V0.8.5: 召回配置 */
+  recallConfig?: RecallConfig;
 }
 
 // ==================== 默认值 ====================
@@ -532,6 +575,7 @@ export function getDefaultAPISettings(): EngramAPISettings {
     promptTemplates: getBuiltInPromptTemplates(),
     worldbookConfig: { ...DEFAULT_WORLDBOOK_CONFIG },
     regexConfig: { ...DEFAULT_REGEX_CONFIG }, // V0.8
+    recallConfig: { ...DEFAULT_RECALL_CONFIG }, // V0.8.5
   };
 }
 

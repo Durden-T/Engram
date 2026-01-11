@@ -144,6 +144,39 @@ export class MacroService {
     }
 
     /**
+     * V0.8.5: 使用 RAG 召回的节点直接刷新缓存
+     * 不从数据库重新读取，直接使用检索结果
+     * @param nodes RAG 召回的事件节点
+     */
+    static async refreshCacheWithNodes(nodes: { id: string; summary: string }[]): Promise<void> {
+        try {
+            // 直接拼接召回节点的摘要
+            this.cachedSummaries = nodes.map(n => n.summary).join('\n\n---\n\n');
+
+            // 刷新世界书上下文
+            try {
+                this.cachedWorldbookContext = await WorldInfoService.getActivatedWorldInfo();
+            } catch (e) {
+                Logger.debug('MacroService', '获取世界书内容失败', e);
+                this.cachedWorldbookContext = '';
+            }
+
+            // 刷新对话历史
+            this.refreshChatHistory();
+
+            // 刷新角色描述
+            this.refreshCharDescription();
+
+            Logger.debug('MacroService', 'RAG 召回缓存已刷新', {
+                summariesLength: this.cachedSummaries.length,
+                nodeCount: nodes.length,
+            });
+        } catch (e) {
+            Logger.warn('MacroService', '刷新 RAG 召回缓存失败', e);
+        }
+    }
+
+    /**
      * 刷新对话历史缓存
      */
     private static refreshChatHistory(): void {

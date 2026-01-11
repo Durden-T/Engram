@@ -8,4 +8,10 @@ export type { EmbedRequest, EmbedResult, EmbedProgressCallback } from './Embeddi
 export { retriever, Retriever } from './Retriever';
 export type { RetrievalResult } from './Retriever';
 
+export { rerankService, RerankService } from './RerankService';
+export type { RerankResultItem } from './RerankService';
+
+export { scoreAndSort, mergeResults, calculateHybridScore, normalizeScores } from './HybridScorer';
+export type { ScoredEvent, RecallResult } from './HybridScorer';
+
 export { injector, Injector } from './Injector';

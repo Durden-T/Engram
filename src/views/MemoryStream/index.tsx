@@ -106,14 +106,21 @@ export const MemoryStream: React.FC = () => {
 
     // 保存事件
     const handleSave = async (id: string, updates: Partial<EventNode>) => {
-        // TODO: 实现 store.updateEvent
-        console.log('[MemoryStream] Save event:', id, updates);
-        // 临时：直接更新本地状态
-        setEvents(prev => prev.map(e =>
-            e.id === id ? { ...e, ...updates } as EventNode : e
-        ));
-        if (isMobile) {
-            setShowEditor(false);
+        try {
+            // 持久化到 IndexedDB
+            await store.updateEvent(id, updates);
+            console.log('[MemoryStream] Saved event to IndexedDB:', id, updates);
+
+            // 同步更新本地状态
+            setEvents(prev => prev.map(e =>
+                e.id === id ? { ...e, ...updates } as EventNode : e
+            ));
+
+            if (isMobile) {
+                setShowEditor(false);
+            }
+        } catch (e) {
+            console.error('[MemoryStream] Failed to save event:', e);
         }
     };
 

@@ -5,20 +5,22 @@
  * 类似 APIPresetsView 的架构设计
  */
 import React, { useState } from 'react';
-import { FileText, Database, Layers, Boxes, ScrollText, BookOpen } from 'lucide-react';
+import { FileText, Database, Layers, Boxes, ScrollText, BookOpen, Search } from 'lucide-react';
 import { Tab } from "@/components/ui/TabPills";
 import { LayoutTabs } from "@/components/layout/LayoutTabs";
 import { Divider } from "@/components/layout/Divider";
 import { QuickLinks, QuickLink } from '@/components/common/QuickLinks';
 import { SummaryPanel } from './SummaryPanel';
 import { VectorizationPanel } from './VectorizationPanel';
+import { RecallPanel } from './RecallPanel';
 
-type ProcessingTab = 'summary' | 'vectorization' | 'batch';
+type ProcessingTab = 'summary' | 'vectorization' | 'recall' | 'batch';
 
 // 主 Tab 配置
 const MAIN_TABS: Tab[] = [
     { id: 'summary', label: '记忆摘要', icon: <FileText size={16} /> },
     { id: 'vectorization', label: '向量化', icon: <Database size={16} /> },
+    { id: 'recall', label: '召回配置', icon: <Search size={16} /> },
     { id: 'batch', label: '批量处理', icon: <Layers size={16} /> },
 ];
 
@@ -40,7 +42,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
             {/* 页面标题 - 统一样式：大标题 + 简短介绍 */}
             <div className="mb-6">
                 <h1 className="text-2xl font-light text-foreground tracking-tight mb-2">数据处理</h1>
-                <p className="text-sm text-muted-foreground">记忆摘要、向量化存储和批量任务管理</p>
+                <p className="text-sm text-muted-foreground">记忆摘要、向量化存储和 RAG 召回配置</p>
             </div>
             <Divider className="mb-6" />
 
@@ -65,6 +67,9 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
                 {/* 向量化 Tab - V0.7 使用 VectorizationPanel */}
                 {activeTab === 'vectorization' && <VectorizationPanel />}
 
+                {/* 召回配置 Tab - V0.8.5 */}
+                {activeTab === 'recall' && <RecallPanel />}
+
                 {/* 批量处理 Tab */}
                 {activeTab === 'batch' && (
                     <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-2">
@@ -78,4 +83,3 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
 };
 
 export default ProcessingView;
-

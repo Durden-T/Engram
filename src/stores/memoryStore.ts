@@ -38,6 +38,8 @@ interface MemoryState {
     getEventsToMerge: (keepRecentCount?: number) => Promise<EventNode[]>;
     /** 删除指定的事件 */
     deleteEvents: (eventIds: string[]) => Promise<void>;
+    /** 更新指定的事件 */
+    updateEvent: (eventId: string, updates: Partial<EventNode>) => Promise<void>;
     /** 获取当前聊天的所有事件 */
     getAllEvents: () => Promise<EventNode[]>;
     /** 归档事件 (Trim Linkage) */
@@ -280,6 +282,25 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
             console.log(`[MemoryStore] Deleted ${eventIds.length} events`);
         } catch (e) {
             console.error('[MemoryStore] Failed to delete events:', e);
+            throw e;
+        }
+    },
+
+    /**
+     * 更新指定的事件
+     */
+    updateEvent: async (eventId: string, updates: Partial<EventNode>) => {
+        if (!eventId) return;
+        const db = getCurrentDb();
+        if (!db) return;
+
+        try {
+            // 不允许修改 id 和 timestamp
+            const { id: _id, timestamp: _ts, ...safeUpdates } = updates as any;
+            await db.events.update(eventId, safeUpdates);
+            console.log(`[MemoryStore] Updated event: ${eventId}`, safeUpdates);
+        } catch (e) {
+            console.error('[MemoryStore] Failed to update event:', e);
             throw e;
         }
     },
