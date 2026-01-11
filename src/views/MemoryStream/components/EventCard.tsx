@@ -15,6 +15,8 @@ interface EventCardProps {
     onSelect?: () => void;
     onCheck?: (checked: boolean) => void;
     checked?: boolean;
+    /** 是否有未保存的修改 */
+    hasChanges?: boolean;
 }
 
 /**
@@ -79,6 +81,7 @@ export const EventCard: React.FC<EventCardProps> = ({
     onSelect,
     onCheck,
     checked = false,
+    hasChanges = false,
 }) => {
     const kv = event.structured_kv;
 
@@ -164,6 +167,9 @@ export const EventCard: React.FC<EventCardProps> = ({
                     {eventTitle}
                 </span>
                 <EmbeddingBadge isEmbedded={event.is_embedded} />
+                {hasChanges && (
+                    <span className="w-2 h-2 rounded-full bg-yellow-500" title="有未保存的修改" />
+                )}
                 <div className="flex-1" />
                 <ScoreDots score={event.significance_score} />
             </div>

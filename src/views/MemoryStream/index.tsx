@@ -1,20 +1,25 @@
 /**
  * MemoryStream - 记忆流视图
  *
- * Master-Detail 布局 (3:7 比例)：
- * - 桌面端：左侧列表 + 右侧编辑面板
- * - 移动端：列表全屏，点击进入编辑全屏
+ * V0.8.5:
+ * - 批量修改后统一保存
+ * - 左右独立滚动容器
+ * - 重嵌按钮联动 VectorizationPanel
+ *
+ * Master-Detail 布局 (3:7 比例)
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PageTitle } from "@/components/common/PageTitle";
 import { Divider } from "@/components/layout/Divider";
 import { Tab } from "@/components/ui/TabPills";
 import { LayoutTabs } from "@/components/layout/LayoutTabs";
 import { useMemoryStore } from '@/stores/memoryStore';
+import { embeddingService } from '@/services/rag/EmbeddingService';
+import { SettingsManager } from '@/services/settings/Persistence';
 import type { EventNode } from '@/services/types/graph';
 import { EventCard } from './components/EventCard';
-import { EventEditor } from './components/EventEditor';
-import { Search, Trash2, RefreshCw, Brain, List, GitBranch } from 'lucide-react';
+import { EventEditor, type EventEditorHandle } from './components/EventEditor';
+import { Search, Trash2, RefreshCw, Brain, List, GitBranch, Save, Sparkles } from 'lucide-react';
 
 // 响应式断点
 const DESKTOP_BREAKPOINT = 768;
@@ -38,8 +43,18 @@ export const MemoryStream: React.FC = () => {
     const [showEditor, setShowEditor] = useState(false);
     const [viewTab, setViewTab] = useState<ViewTab>('list');
 
+    // 批量修改状态
+    const [pendingChanges, setPendingChanges] = useState<Map<string, Partial<EventNode>>>(new Map());
+    const hasChanges = pendingChanges.size > 0;
+
+    // 重嵌状态
+    const [isReembedding, setIsReembedding] = useState(false);
+
     // Store
     const store = useMemoryStore.getState();
+
+    // Editor ref
+    const editorRef = useRef<EventEditorHandle>(null);
 
     // 响应式检测
     useEffect(() => {
@@ -55,7 +70,6 @@ export const MemoryStream: React.FC = () => {
         setIsLoading(true);
         try {
             const allEvents = await store.getAllEvents();
-            // 按时间倒序
             setEvents(allEvents.sort((a, b) => b.timestamp - a.timestamp));
         } catch (e) {
             console.error('[MemoryStream] Failed to load events:', e);
@@ -79,11 +93,16 @@ export const MemoryStream: React.FC = () => {
         );
     }, [events, searchQuery]);
 
-    // 选中的事件
-    const selectedEvent = useMemo(() =>
-        events.find(e => e.id === selectedId) || null,
-        [events, selectedId]
-    );
+    // 选中的事件（合并待保存的修改）
+    const selectedEvent = useMemo(() => {
+        const event = events.find(e => e.id === selectedId);
+        if (!event) return null;
+        const pending = pendingChanges.get(event.id);
+        if (pending) {
+            return { ...event, ...pending } as EventNode;
+        }
+        return event;
+    }, [events, selectedId, pendingChanges]);
 
     // 选择事件
     const handleSelect = (id: string) => {
@@ -104,23 +123,72 @@ export const MemoryStream: React.FC = () => {
         setCheckedIds(newSet);
     };
 
-    // 保存事件
-    const handleSave = async (id: string, updates: Partial<EventNode>) => {
+    // 单个事件修改（暂存，不立即保存）
+    const handleEventChange = useCallback((id: string, updates: Partial<EventNode>) => {
+        setPendingChanges(prev => {
+            const newMap = new Map(prev);
+            const existing = newMap.get(id) || {};
+            newMap.set(id, { ...existing, ...updates });
+            return newMap;
+        });
+
+        // 同步更新本地显示
+        setEvents(prev => prev.map(e =>
+            e.id === id ? { ...e, ...updates } as EventNode : e
+        ));
+    }, []);
+
+    // 批量保存所有修改
+    const handleBatchSave = async () => {
+        if (pendingChanges.size === 0) return;
+
         try {
-            // 持久化到 IndexedDB
-            await store.updateEvent(id, updates);
-            console.log('[MemoryStream] Saved event to IndexedDB:', id, updates);
+            const promises = Array.from(pendingChanges.entries()).map(
+                ([id, updates]) => store.updateEvent(id, updates)
+            );
+            await Promise.all(promises);
 
-            // 同步更新本地状态
-            setEvents(prev => prev.map(e =>
-                e.id === id ? { ...e, ...updates } as EventNode : e
-            ));
-
-            if (isMobile) {
-                setShowEditor(false);
-            }
+            console.log(`[MemoryStream] Batch saved ${pendingChanges.size} events`);
+            setPendingChanges(new Map());
         } catch (e) {
-            console.error('[MemoryStream] Failed to save event:', e);
+            console.error('[MemoryStream] Batch save failed:', e);
+        }
+    };
+
+    // 重嵌所有事件
+    const handleReembedAll = async () => {
+        const apiSettings = SettingsManager.get('apiSettings');
+        const vectorConfig = apiSettings?.vectorConfig;
+
+        if (!vectorConfig) {
+            alert('请先在 API 配置中配置向量化服务');
+            return;
+        }
+
+        if (!confirm('确定要重新嵌入所有事件吗？这将清除现有嵌入并重新生成。')) {
+            return;
+        }
+
+        setIsReembedding(true);
+        try {
+            embeddingService.setConfig(vectorConfig);
+            const config = apiSettings?.embeddingConfig;
+            if (config?.concurrency) {
+                embeddingService.setConcurrency(config.concurrency);
+            }
+
+            await embeddingService.reembedAllEvents((current, total, errors) => {
+                console.log(`[MemoryStream] Reembedding: ${current}/${total}, errors: ${errors}`);
+            });
+
+            // 刷新列表
+            await loadEvents();
+            alert('重嵌完成！');
+        } catch (e: any) {
+            console.error('[MemoryStream] Reembed failed:', e);
+            alert('重嵌失败: ' + (e.message || '未知错误'));
+        } finally {
+            setIsReembedding(false);
         }
     };
 
@@ -130,6 +198,12 @@ export const MemoryStream: React.FC = () => {
         setEvents(prev => prev.filter(e => e.id !== id));
         setSelectedId(null);
         setShowEditor(false);
+        // 移除待保存的修改
+        setPendingChanges(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+        });
     };
 
     // 批量删除
@@ -140,6 +214,12 @@ export const MemoryStream: React.FC = () => {
         await store.deleteEvents(Array.from(checkedIds));
         setEvents(prev => prev.filter(e => !checkedIds.has(e.id)));
         setCheckedIds(new Set());
+        // 移除待保存的修改
+        setPendingChanges(prev => {
+            const newMap = new Map(prev);
+            checkedIds.forEach(id => newMap.delete(id));
+            return newMap;
+        });
     };
 
     // 关闭编辑器
@@ -154,9 +234,10 @@ export const MemoryStream: React.FC = () => {
     if (isMobile && showEditor && selectedEvent) {
         return (
             <EventEditor
+                ref={editorRef}
                 event={selectedEvent}
                 isFullScreen={true}
-                onSave={handleSave}
+                onSave={handleEventChange}
                 onDelete={handleDelete}
                 onClose={handleCloseEditor}
             />
@@ -164,18 +245,39 @@ export const MemoryStream: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col h-full animate-in fade-in">
+        <div className="flex flex-col h-full animate-in fade-in overflow-hidden">
             <PageTitle title="记忆编辑" subtitle="查看和管理记忆事件" />
             <Divider className="mb-6" />
 
             {/* Tab 导航 */}
-            {/* Tab 导航 - 自动 Portal */}
             <LayoutTabs
                 tabs={VIEW_TABS}
                 activeTab={viewTab}
                 onChange={(id) => setViewTab(id as ViewTab)}
                 actions={
                     <div className="flex items-center gap-2">
+                        {/* 保存按钮 - 有修改时显示 */}
+                        {hasChanges && (
+                            <button
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary-foreground hover:bg-primary border border-primary/50 rounded transition-colors"
+                                onClick={handleBatchSave}
+                            >
+                                <Save size={12} />
+                                保存 ({pendingChanges.size})
+                            </button>
+                        )}
+
+                        {/* 重嵌按钮 */}
+                        <button
+                            onClick={handleReembedAll}
+                            disabled={isReembedding}
+                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors disabled:opacity-50"
+                            title="重新嵌入所有事件"
+                        >
+                            <Sparkles size={12} className={isReembedding ? 'animate-pulse' : ''} />
+                            {isReembedding ? '嵌入中...' : '重嵌'}
+                        </button>
+
                         {/* 刷新按钮 */}
                         <button
                             onClick={loadEvents}
@@ -199,11 +301,18 @@ export const MemoryStream: React.FC = () => {
                 }
             />
 
-            {/* 列表视图 */}
+            {/* 列表视图 - 使用固定计算高度实现独立滚动 */}
             {viewTab === 'list' && (
-                <>
+                <div
+                    className="flex flex-col overflow-hidden"
+                    style={{
+                        // 计算可用高度：视口高度 - header(~50px) - tabs(~80px) - title(~60px) - 边距(~80px)
+                        height: 'calc(100vh - 270px)',
+                        minHeight: '300px',
+                    }}
+                >
                     {/* 搜索框 */}
-                    <div className="relative mb-4">
+                    <div className="relative mb-4 shrink-0">
                         <Search size={14} className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <input
                             type="text"
@@ -225,9 +334,9 @@ export const MemoryStream: React.FC = () => {
                         />
                     </div>
 
-                    {/* 主内容区 - Master-Detail 布局 3:7 */}
-                    <div className="flex-1 flex overflow-hidden gap-6">
-                        {/* 左侧：事件列表 */}
+                    {/* 主内容区 - Master-Detail 布局，flex-1 占满剩余空间 */}
+                    <div className="flex-1 flex gap-6 min-h-0">
+                        {/* 左侧：事件列表 - 独立滚动 */}
                         <div className={`
                             ${isMobile ? 'w-full' : 'w-[30%] min-w-[240px]'}
                             overflow-y-auto no-scrollbar
@@ -246,7 +355,7 @@ export const MemoryStream: React.FC = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <div className={isMobile ? '' : 'space-y-1'}>
+                                <div className={isMobile ? '' : 'space-y-1 pb-4'}>
                                     {filteredEvents.map(event => (
                                         <EventCard
                                             key={event.id}
@@ -254,6 +363,7 @@ export const MemoryStream: React.FC = () => {
                                             isSelected={event.id === selectedId}
                                             isCompact={isMobile}
                                             checked={checkedIds.has(event.id)}
+                                            hasChanges={pendingChanges.has(event.id)}
                                             onSelect={() => handleSelect(event.id)}
                                             onCheck={(checked) => handleCheck(event.id, checked)}
                                         />
@@ -262,23 +372,24 @@ export const MemoryStream: React.FC = () => {
                             )}
                         </div>
 
-                        {/* 右侧：编辑面板（仅桌面端）- 占 70% */}
+                        {/* 右侧：编辑面板 - 独立滚动 */}
                         {!isMobile && (
-                            <div className="w-[70%] overflow-y-auto no-scrollbar">
+                            <div className="flex-1 overflow-y-auto no-scrollbar">
                                 <EventEditor
+                                    ref={editorRef}
                                     event={selectedEvent}
                                     isFullScreen={false}
-                                    onSave={handleSave}
+                                    onSave={handleEventChange}
                                     onDelete={handleDelete}
                                     onClose={() => setSelectedId(null)}
                                 />
                             </div>
                         )}
                     </div>
-                </>
+                </div>
             )}
 
-            {/* 图谱视图 - 占位 */}
+            {/* 图谱视图 */}
             {viewTab === 'graph' && (
                 <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-4">
                     <GitBranch size={48} className="opacity-20" />
