@@ -13651,7 +13651,7 @@ const qc = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
       ]
     }
   );
-}, A5 = "0.8.0", wb = {
+}, A5 = "0.8.5", wb = {
   version: A5
 }, R1 = ({
   activeTab: t,
