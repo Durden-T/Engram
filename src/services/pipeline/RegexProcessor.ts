@@ -41,41 +41,41 @@ export const DEFAULT_REGEX_RULES: RegexRule[] = [
     {
         id: 'remove-think',
         name: '移除思维链',
-        pattern: '<think>[\\s\\S]*?</think>',
+        pattern: '<think(?:\\s+[^>]*)?>[\\s\\S]*?<\\/think\\s*>',
         replacement: '',
         enabled: true,
         flags: 'gi',
-        scope: 'output',
+        scope: 'both',
         description: '移除 LLM 输出中的 <think>...</think> 思考过程',
     },
     {
         id: 'remove-headless-think',
         name: '移除无头思维链',
-        pattern: '[\\s\\S]*?</think>',
+        pattern: '[\\s\\S]*?<\\/think\\s*>',
         replacement: '',
         enabled: true,
-        flags: 'g',
-        scope: 'output',
+        flags: 'gi',
+        scope: 'both',
         description: '移除无开头标签的思维链，如直接以 </think> 结尾的内容',
     },
     {
         id: 'remove-update-variable',
         name: '移除 UpdateVariable',
-        pattern: '<UpdateVariable>[\\s\\S]*?</UpdateVariable>',
+        pattern: '<UpdateVariable(?:\\s+[^>]*)?>[\\s\\S]*?<\\/UpdateVariable\\s*>',
         replacement: '',
         enabled: true,
         flags: 'gi',
-        scope: 'output',
+        scope: 'both',
         description: '移除 MVU 更新变量标签，避免污染提示词',
     },
     {
         id: 'remove-status-placeholder',
         name: '移除 StatusPlaceHolder',
-        pattern: '<StatusPlaceHolderImpl\\s*/>',
+        pattern: '<StatusPlaceHolderImpl(?:\\s+[^>]*)?\\s*\\/>',
         replacement: '',
         enabled: true,
         flags: 'gi',
-        scope: 'input',
+        scope: 'both',
         description: '移除变量脚本在消息末尾添加的占位符标签',
     },
 ];
@@ -217,7 +217,8 @@ export class RegexProcessor {
      */
     captureTag(text: string, tagName: string): string | null {
         try {
-            const regex = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+            // 支持属性和空格: <tag attr="..."> content </tag>
+            const regex = new RegExp(`<${tagName}(?:\\s+[^>]*)?>([\\s\\S]*?)<\\/${tagName}\\s*>`, 'i');
             const match = text.match(regex);
             return match?.[1]?.trim() || null;
         } catch (e) {
@@ -233,7 +234,8 @@ export class RegexProcessor {
      */
     removeTag(text: string, tagName: string): string {
         try {
-            const regex = new RegExp(`<${tagName}>[\\s\\S]*?<\\/${tagName}>`, 'gi');
+            // 支持属性和空格
+            const regex = new RegExp(`<${tagName}(?:\\s+[^>]*)?>[\\s\\S]*?<\\/${tagName}\\s*>`, 'gi');
             return text.replace(regex, '').trim();
         } catch (e) {
             console.warn(`[RegexProcessor] 标签移除失败: ${tagName}`, e);

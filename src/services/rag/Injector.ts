@@ -15,6 +15,7 @@ import { getCurrentChatId, getSTContext } from '@/tavern/context';
 import { MacroService } from '@/tavern/MacroService';
 import { Logger } from '@/lib/logger';
 import { preprocessor } from '@/services/preprocessing';
+import { regexProcessor } from '@/services/pipeline/RegexProcessor';
 import { retriever } from './Retriever';
 import { SettingsManager } from '@/services/settings/Persistence';
 import { DEFAULT_RECALL_CONFIG } from '@/services/api/types';
@@ -278,6 +279,10 @@ export class Injector {
                 }
 
                 // 3. 更新用户消息 (如果内容发生了变化)
+                // 2.5 最终清洗 (确保所有标签都被移除)
+                // 强制对最终结果进行一次清洗，确保组合后的内容不包含 <think> 等标签
+                finalOutput = regexProcessor.process(finalOutput, 'output');
+
                 // 3. 更新用户消息 (如果内容发生了变化)
                 if (finalOutput !== userInput) {
                     if (targetSource === 'chat') {

@@ -1,5 +1,6 @@
 import { useMemoryStore } from '@/stores/memoryStore';
 import { Logger } from '@/lib/logger';
+import { regexProcessor } from '@/services/pipeline/RegexProcessor';
 import { WorldInfoService } from '@/tavern/api';
 
 /**
@@ -55,13 +56,13 @@ export class MacroService {
                 'Engram: 当前用户输入（预处理专用）'
             );
 
-            // {{chatHistory}} - 最近对话历史
+            // {{chatHistory}} - 最近对话历史 (支持参数: {{chatHistory:20}})
             context.registerMacro(
                 'chatHistory',
-                () => {
-                    return MacroService.cachedChatHistory;
+                (arg: string) => {
+                    return MacroService.getChatHistory(arg);
                 },
-                'Engram: 最近对话历史'
+                'Engram: 最近对话历史 (可选参数: 条数, 默认20)'
             );
 
             // {{context}} - 角色卡设定（同酒馆 description）
@@ -99,7 +100,7 @@ export class MacroService {
     private static cachedSummaries: string = '';
     private static cachedWorldbookContext: string = '';
     private static cachedUserInput: string = '';
-    private static cachedChatHistory: string = '';
+
     private static cachedCharDescription: string = '';
 
     /**
@@ -127,8 +128,7 @@ export class MacroService {
                 this.cachedWorldbookContext = '';
             }
 
-            // 刷新对话历史
-            this.refreshChatHistory();
+
 
             // 刷新角色描述
             this.refreshCharDescription();
@@ -161,8 +161,7 @@ export class MacroService {
                 this.cachedWorldbookContext = '';
             }
 
-            // 刷新对话历史
-            this.refreshChatHistory();
+
 
             // 刷新角色描述
             this.refreshCharDescription();
@@ -177,21 +176,67 @@ export class MacroService {
     }
 
     /**
-     * 刷新对话历史缓存
+     * 获取对话历史 (动态计算)
+     * @param depthStr 回溯深度 (默认 20)
      */
-    private static refreshChatHistory(): void {
+    static getChatHistory(depthStr?: string): string {
         try {
+            // 解析深度参数
+            let limit = 20;
+            if (depthStr) {
+                const parsed = parseInt(depthStr, 10);
+                if (!isNaN(parsed) && parsed > 0) {
+                    limit = parsed;
+                }
+            }
+
+            Logger.debug('MacroService', 'getChatHistory called', { depthStr, limit });
+
             // @ts-ignore
             const context = window.SillyTavern?.getContext?.();
+            // @ts-ignore
+            const TavernHelper = window.TavernHelper;
+
             if (context?.chat && Array.isArray(context.chat)) {
-                const recentMessages = context.chat.slice(-10);
-                this.cachedChatHistory = recentMessages.map((m: { is_user?: boolean; mes?: string }) => {
-                    const role = m.is_user ? '{{user}}' : '{{char}}';
-                    return `${role}: ${m.mes || ''}`;
+                // 获取最近 N 条消息
+                const recentMessages = context.chat.slice(-limit);
+                Logger.debug('MacroService', 'Got recent messages', { count: recentMessages.length });
+
+                return recentMessages.map((m: any, index: number) => {
+                    let content = m.mes || '';
+                    const originalContent = content;
+
+                    // 1. 酒馆原生正则清洗
+                    if (TavernHelper && typeof TavernHelper.formatAsTavernRegexedString === 'function') {
+                        try {
+                            // usage: text, placement (2=AI Output), options
+                            content = TavernHelper.formatAsTavernRegexedString(content, 2, { isPrompt: true });
+                        } catch (err) {
+                            Logger.warn('MacroService', '酒馆原生正则清洗失败', err);
+                        }
+                    }
+
+                    // 2. Engram 内部正则清洗
+                    content = regexProcessor.process(content, 'both');
+
+                    // Log first and last message processing for debugging
+                    if (index === 0 || index === recentMessages.length - 1) {
+                        Logger.debug('MacroService', 'Message processed', {
+                            index,
+                            original: originalContent.substring(0, 50),
+                            processed: content.substring(0, 50)
+                        });
+                    }
+
+                    // 3. 返回纯内容 (去除角色名前缀)
+                    return content;
                 }).join('\n');
             }
+            Logger.warn('MacroService', 'Context chat is empty or invalid');
+            return '';
         } catch (e) {
-            Logger.debug('MacroService', '刷新对话历史失败', e);
+            Logger.debug('MacroService', '获取对话历史失败', e);
+            return '';
         }
     }
 

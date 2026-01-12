@@ -1,8 +1,8 @@
 /**
  * TextProcessor - 文本处理工具
- * 
+ *
  * 提供 LLM 输出清洗、格式化等功能
- * 
+ *
  * 通用管道组件：可被多个模块复用
  */
 
@@ -24,10 +24,6 @@ const DEFAULT_TRIM_RULES: TrimRule[] = [
     // 统一中文引号
     { pattern: /[""]/g, replacement: '"', description: '中文引号' },
     { pattern: /['']/g, replacement: "'", description: '中文单引号' },
-    // 移除常见的 LLM 前缀
-    { pattern: /^(好的|以下是|这是|根据对话).{0,20}[:：]\s*/gm, replacement: '', description: 'LLM前缀' },
-    // 移除末尾的解释性文字
-    { pattern: /\n*如果.{0,50}请.{0,30}[。！]?\s*$/g, replacement: '', description: '末尾解释' },
 ];
 
 /**
