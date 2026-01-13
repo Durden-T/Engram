@@ -5,10 +5,13 @@ import { ThemeSelector } from './components/ThemeSelector';
 import { Switch } from "@/components/ui/Switch";
 import { NumberField } from '../APIPresets/components/FormField';
 import { summarizerService } from "@/services/summarizer";
+import { preprocessor } from "@/services/preprocessing";
 import { SettingsManager } from "@/services/settings/Persistence";
+import { DEFAULT_PREPROCESSING_CONFIG } from "@/services/preprocessing/types";
 
 export const Settings: React.FC = () => {
     const [previewEnabled, setPreviewEnabled] = useState(SettingsManager.getSettings().summarizerConfig?.previewEnabled ?? true);
+    const [preprocessingPreviewEnabled, setPreprocessingPreviewEnabled] = useState(SettingsManager.getSettings().preprocessingConfig?.preview ?? DEFAULT_PREPROCESSING_CONFIG.preview);
 
     // HACK: 强制刷新引用
     const [, forceUpdate] = useState({});
@@ -140,6 +143,32 @@ export const Settings: React.FC = () => {
                                 onChange={(checked) => {
                                     setPreviewEnabled(checked);
                                     summarizerService.updateConfig({ previewEnabled: checked });
+                                }}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Preprocessing Section */}
+                <section>
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">输入预处理</h3>
+                    <div className="bg-muted/30 border border-border rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                    <Eye size={20} />
+                                </div>
+                                <div>
+                                    <h4 className="font-medium text-foreground">预处理修订模式</h4>
+                                    <p className="text-sm text-muted-foreground break-words">在注入用户输入前，弹出预览窗口</p>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={preprocessingPreviewEnabled}
+                                onChange={(checked) => {
+                                    setPreprocessingPreviewEnabled(checked);
+                                    const currentConfig = preprocessor.getConfig();
+                                    preprocessor.saveConfig({ ...currentConfig, preview: checked });
                                 }}
                             />
                         </div>

@@ -6,6 +6,10 @@
  * 通用服务：可被 Summarizer、RAG、Graph 等模块复用
  */
 
+import { SettingsManager } from "@/services/settings/Persistence";
+import type { LLMPreset } from "@/services/api/types";
+import { Logger } from "@/lib/logger";
+
 /** LLM 生成请求 */
 export interface LLMRequest {
     /** 系统提示词 */
@@ -48,6 +52,19 @@ function getTavernHelper(): {
 }
 
 /**
+ * 获取酒馆 Connection Profiles
+ */
+function getTavernProfiles(): any[] {
+    try {
+        // @ts-ignore - 访问酒馆的 extension_settings
+        const context = window.SillyTavern?.getContext?.();
+        return context?.extensionSettings?.connectionManager?.profiles || [];
+    } catch {
+        return [];
+    }
+}
+
+/**
  * LLMAdapter 类
  * 封装 LLM 调用
  */
@@ -69,6 +86,94 @@ export class LLMAdapter {
 
         try {
             let content: string;
+
+            // [Step 0] 获取预设配置 (Fix for API Presets issue)
+            const settings = SettingsManager.getSettings();
+            let preset: LLMPreset | undefined;
+
+            if (request.presetId) {
+                // 1. 尝试使用请求指定的预设
+                preset = settings.apiSettings?.llmPresets?.find(p => p.id === request.presetId);
+            }
+
+            if (!preset && settings.apiSettings?.selectedPresetId) {
+                // 2. 尝试使用全局选中的预设
+                preset = settings.apiSettings.llmPresets?.find(p => p.id === settings.apiSettings.selectedPresetId);
+            }
+
+            // 如果找到了预设，且预设不是默认的 'tavern' 源，我们需要准备 Custom API 配置
+            // 根据 SillyTavern 架构，必须通过 custom_api 对象传递 overrides
+            let customApiConfig: Record<string, any> | undefined;
+
+            if (preset && preset.source !== 'tavern') {
+                customApiConfig = {};
+                Logger.info('LLMAdapter', `使用预设: ${preset.name} (${preset.source})`);
+
+                // 1. 映射采样参数 (Common Parameters)
+                if (preset.parameters) {
+                    customApiConfig = {
+                        ...customApiConfig,
+                        // 映射标准参数到 ST API 字段
+                        temperature: preset.parameters.temperature,
+                        max_tokens: preset.parameters.maxTokens, // ST API 通常使用 max_tokens
+                        top_p: preset.parameters.topP,
+                        frequency_penalty: preset.parameters.frequencyPenalty,
+                        presence_penalty: preset.parameters.presencePenalty,
+
+                        // 某些后端可能需要 rep_pen 作为 frequency_penalty 的别名
+                        // rep_pen: preset.parameters.frequencyPenalty,
+                    };
+                }
+
+                // 2. 根据源类型映射连接配置
+                if (preset.source === 'custom' && preset.custom) {
+                    // [Custom Source]
+                    customApiConfig.apiurl = preset.custom.apiUrl;
+                    customApiConfig.key = preset.custom.apiKey;
+                    customApiConfig.model = preset.custom.model;
+
+                    // 默认为 openai，除非指定
+                    customApiConfig.source = preset.custom.apiSource || 'openai';
+
+                } else if (preset.source === 'tavern_profile' && preset.tavernProfileId) {
+                    // [Tavern Profile Source]
+                    const profiles = getTavernProfiles();
+                    const profile = profiles.find(p => p.id === preset.tavernProfileId);
+
+                    if (profile) {
+                        Logger.info('LLMAdapter', `找到酒馆 Profile: ${profile.name}`);
+
+                        // 映射 Profile 字段到 custom_api
+                        // 根据调研文档，Tavern Profile 字段可能包括 api, api-url, model, etc.
+
+                        // 必填字段映射
+                        customApiConfig.model = profile.model;
+
+                        // 根据 API 类型推断 source
+                        // profile.api 通常是 'openai', 'anthropic' 等
+                        customApiConfig.source = profile.api;
+
+                        // 尝试提取 URL (不同版本字段可能不同)
+                        // 常见：api-url, request_url, openai_url
+                        if (profile['api-url']) customApiConfig.apiurl = profile['api-url'];
+                        else if (profile.request_url) customApiConfig.apiurl = profile.request_url;
+                        else if (profile.openai_url) customApiConfig.apiurl = profile.openai_url;
+
+                        // 尝试提取 Key
+                        // 常见：key, request_apikey, openai_key, secret-id (如果是 secret-id 需要 ST 内部解析，这里尽量找直接的 key)
+                        // 注意：如果 Key 存储在 Secret 中，Engram 可能无法直接获取明文。
+                        // 但传递 custom_api 时，若 key 为空，ST 可能会回退? 不，Custom API 通常需要显式 Key。
+                        // 如果 profile 中没有明文 Key，这可能是一个限制。
+                        if (profile.key) customApiConfig.key = profile.key;
+                        else if (profile.request_apikey) customApiConfig.key = profile.request_apikey;
+                        else if (profile.openai_key) customApiConfig.key = profile.openai_key;
+
+                    } else {
+                        Logger.warn('LLMAdapter', `未找到 ID 为 ${preset.tavernProfileId} 的酒馆配置，将回退到默认设置`);
+                        customApiConfig = undefined; // 回退
+                    }
+                }
+            }
 
             // =========================================================================
             // Context Aggregation Gateway (V0.8 Upgrade)
@@ -150,6 +255,7 @@ export class LLMAdapter {
 
                 content = await helper.generateRaw({
                     ordered_prompts: prompts,
+                    custom_api: customApiConfig, // V0.8.6 Fix
                 });
             } else if (helper.generate) {
                 // fallback: 使用 generate
@@ -158,6 +264,7 @@ export class LLMAdapter {
                     system_prompt: finalSystemPrompt,
                     should_stream: false,
                     max_chat_history: 0,
+                    custom_api: customApiConfig, // V0.8.6 Fix
                 });
             } else {
                 throw new Error('无可用的生成 API');

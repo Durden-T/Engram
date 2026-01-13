@@ -251,28 +251,34 @@ export class Injector {
                 // 2. RAG 召回 (如果启用)
                 if (recallConfig.enabled) {
                     try {
-                        Logger.info('Injector', '🔍 执行 RAG 召回', {
-                            queryCount: queries.length,
-                            firstQuery: queries[0] || userInput.substring(0, 50)
-                        });
-
-                        // 执行检索 (Retriever 内部会根据 recallConfig 处理策略)
-                        const recallResult = await retriever.search(
-                            userInput,
-                            queries.length > 0 ? queries : undefined
-                        );
-
-                        if (recallResult.nodes.length > 0) {
-                            Logger.info('Injector', '✅ RAG 召回完成', {
-                                nodeCount: recallResult.nodes.length,
-                                entries: recallResult.entries.length,
+                        // [Optimized] 检查是否有向量化数据
+                        const hasVectorData = await retriever.hasVectorizedNodes();
+                        if (!hasVectorData) {
+                            Logger.info('Injector', '未检测到向量化数据，自动跳过 RAG 召回');
+                        } else {
+                            Logger.info('Injector', '🔍 执行 RAG 召回', {
+                                queryCount: queries.length,
+                                firstQuery: queries[0] || userInput.substring(0, 50)
                             });
 
-                            // 刷新 MacroService 缓存，使 {{engramSummaries}} 包含召回结果
-                            // MacroService 内部会自动清洗 EJS
-                            await MacroService.refreshCacheWithNodes(recallResult.nodes);
-                        } else {
-                            Logger.debug('Injector', 'RAG 无匹配结果');
+                            // 执行检索 (Retriever 内部会根据 recallConfig 处理策略)
+                            const recallResult = await retriever.search(
+                                userInput,
+                                queries.length > 0 ? queries : undefined
+                            );
+
+                            if (recallResult.nodes.length > 0) {
+                                Logger.info('Injector', '✅ RAG 召回完成', {
+                                    nodeCount: recallResult.nodes.length,
+                                    entries: recallResult.entries.length,
+                                });
+
+                                // 刷新 MacroService 缓存，使 {{engramSummaries}} 包含召回结果
+                                // MacroService 内部会自动清洗 EJS
+                                await MacroService.refreshCacheWithNodes(recallResult.nodes);
+                            } else {
+                                Logger.debug('Injector', 'RAG 无匹配结果');
+                            }
                         }
                     } catch (e) {
                         Logger.error('Injector', 'RAG 召回失败', e);

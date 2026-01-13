@@ -18,6 +18,8 @@ export interface PreprocessingConfig {
     templateId: string;
     /** 是否自动触发 (每次发送消息) */
     autoTrigger: boolean;
+    /** 是否开启预览修订 (V0.8.6+) */
+    preview: boolean;
 }
 
 /** 预处理结果 */
@@ -43,4 +45,5 @@ export const DEFAULT_PREPROCESSING_CONFIG: PreprocessingConfig = {
     enabled: false,
     templateId: 'query_enhance',
     autoTrigger: true,
+    preview: true, // 默认开启预览
 };

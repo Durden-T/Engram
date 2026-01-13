@@ -8,6 +8,7 @@ import trimPrompt from './prompts/trim.md?raw';
 import queryEnhancePrompt from './prompts/query_enhance.md?raw';
 import plotDirectorPrompt from './prompts/plot_director.md?raw';
 import descriptionPrompt from './prompts/description.md?raw';
+import { StickyConfig, DEFAULT_STICKY_CONFIG } from '@/services/rag/StickyCache';
 
 // ==================== LLM 预设 ====================
 
@@ -292,7 +293,6 @@ export const DEFAULT_REGEX_CONFIG: GlobalRegexConfig = {
  * 召回配置 (V0.8.5)
  */
 export interface RecallConfig {
-  /** 是否启用召回 (总开关) */
   /** 是否启用 RAG 召回系统 (总开关) */
   enabled: boolean;
 
@@ -307,6 +307,15 @@ export interface RecallConfig {
 
   /** 策略 4: 是否使用暴力召回 (滚动窗口) */
   useBruteForce: boolean;
+
+  /** Embedding 详细配置 */
+  embedding?: {
+    topK: number;
+    minScoreThreshold: number;
+  };
+
+  /** 黏性配置 */
+  sticky?: StickyConfig;
 }
 
 /**
@@ -318,6 +327,11 @@ export const DEFAULT_RECALL_CONFIG: RecallConfig = {
   useRerank: false,
   usePreprocessing: false,
   useBruteForce: false, // 默认不开启，由 Embedding 失败时兜底，或者用户强制开启
+  embedding: {
+    topK: 20,
+    minScoreThreshold: 0.3,
+  },
+  sticky: { ...DEFAULT_STICKY_CONFIG, enabled: true },
 };
 
 // ==================== 完整配置 ====================

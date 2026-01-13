@@ -284,13 +284,24 @@ export class EmbeddingService {
     private async callOllama(text: string, config: VectorConfig): Promise<number[]> {
         const endpoint = config.apiUrl || DEFAULT_ENDPOINTS.ollama!;
 
+        // 智能判断是否为新版 API (/api/embed)
+        // 新版 API 使用 "input" 字段，旧版使用 "prompt" 字段
+        const isNewEndpoint = endpoint.includes('/api/embed') && !endpoint.includes('/api/embeddings');
+
+        const requestBody: Record<string, any> = {
+            model: config.model || 'nomic-embed-text',
+        };
+
+        if (isNewEndpoint) {
+            requestBody.input = text;
+        } else {
+            requestBody.prompt = text;
+        }
+
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: config.model || 'nomic-embed-text',
-                prompt: text,
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -298,12 +309,20 @@ export class EmbeddingService {
             throw new Error(`Ollama error ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json() as OllamaEmbeddingResponse;
-        if (!data.embedding) {
-            throw new Error('No embedding data returned');
+        const data = await response.json() as { embedding?: number[], embeddings?: number[][] };
+
+        // 兼容处理：
+        // 1. 旧版返回 { embedding: [...] }
+        // 2. 新版返回 { embeddings: [[...]] }
+        if (data.embedding) {
+            return data.embedding;
         }
 
-        return data.embedding;
+        if (data.embeddings && data.embeddings.length > 0) {
+            return data.embeddings[0];
+        }
+
+        throw new Error(`No embedding data returned in Ollama response. Keys: ${Object.keys(data).join(', ')}`);
     }
 
     /**

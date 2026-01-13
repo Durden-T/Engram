@@ -13,9 +13,11 @@ import { regexProcessor } from '@/services/pipeline/RegexProcessor';
 import { SettingsManager } from '@/services/settings/Persistence';
 import { Logger, ModelLogger } from '@/lib/logger';
 import { notificationService } from '@/services/NotificationService';
+import { EventBus, TavernEventType } from '@/tavern/api';
 import type { PromptCategory } from '@/services/api/types';
 import type { PreprocessingConfig, PreprocessingResult } from './types';
 import { DEFAULT_PREPROCESSING_CONFIG } from './types';
+import { getCurrentCharacter, getCurrentModel } from '@/tavern/context';
 
 /**
  * 使用酒馆原生 substituteParams 替换宏
@@ -56,22 +58,15 @@ async function stopSTGeneration(): Promise<void> {
 // Helper functions to get context info safely
 function getCharacterName(): string | undefined {
     try {
-        // @ts-ignore
-        const context = window.SillyTavern?.getContext?.();
-        // @ts-ignore
-        const chars = window.characters;
-        if (context && chars && typeof context.characterId !== 'undefined' && chars[context.characterId]) {
-            return chars[context.characterId].name;
-        }
+        const char = getCurrentCharacter();
+        return char?.name;
     } catch (e) { }
     return undefined;
 }
 
 function getModelName(): string | undefined {
-    // Try to get model name from various global settings
     try {
-        // @ts-ignore
-        return window.text_generation_settings?.model_name || window.oai_settings?.openai_model;
+        return getCurrentModel();
     } catch (e) { }
     return undefined;
 }
@@ -240,6 +235,41 @@ export class Preprocessor {
 
             // 4. 捕获标签内容
             const tags = regexProcessor.captureTags(cleanedOutput, ['output', 'query']);
+
+            // 5. 预览与修订 (V0.8.6+)
+            if (config.preview && tags.output) {
+                Logger.info('Preprocessor', '请求用户预览修订');
+                try {
+                    const reviewedContent = await new Promise<string | null>((resolve) => {
+                        EventBus.emit(TavernEventType.ENGRAM_REQUEST_REVISION, {
+                            title: '预处理结果预览',
+                            content: tags.output,
+                            description: '请确认即将注入到用户输入的内容。您可以直接在此修改，确认后将替换原文。',
+                            onConfirm: (newContent: string) => resolve(newContent),
+                            onCancel: () => resolve(null),
+                        });
+                    });
+
+                    if (reviewedContent !== null) {
+                        // 用户确认修改
+                        tags.output = reviewedContent;
+                        Logger.info('Preprocessor', '用户已确认修订');
+                    } else {
+                        // 用户取消
+                        Logger.info('Preprocessor', '用户取消了修订，视为放弃预处理结果');
+                        return {
+                            success: false,
+                            output: null,
+                            query: null,
+                            rawOutput: '',
+                            processingTime: Date.now() - startTime,
+                            error: '用户取消应用预处理结果',
+                        };
+                    }
+                } catch (e) {
+                    Logger.warn('Preprocessor', '预览修订过程出错，将直接使用原结果', e);
+                }
+            }
 
             const processingTime = Date.now() - startTime;
             Logger.info('Preprocessor', '预处理完成', {

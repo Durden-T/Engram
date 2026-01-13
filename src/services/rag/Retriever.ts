@@ -42,6 +42,27 @@ export class Retriever {
     }
 
     /**
+     * 检查是否存在已向量化的节点
+     * 用于决定是否需要执行向量检索
+     */
+    async hasVectorizedNodes(): Promise<boolean> {
+        const chatId = getCurrentChatId();
+        if (!chatId) return false;
+
+        const db = tryGetDbForChat(chatId);
+        if (!db) return false;
+
+        // 检查是否存在任何带有 embeddings 的事件
+        // 使用 limit(1) 提高效率，只要找到一个就返回 true
+        const count = await db.events
+            .filter(e => !!e.embedding && e.embedding.length > 0)
+            .limit(1)
+            .count();
+
+        return count > 0;
+    }
+
+    /**
      * 获取全局向量配置
      */
     private getVectorConfig(): VectorConfig | undefined {
@@ -296,7 +317,8 @@ export class Retriever {
                     );
 
                     // 过滤低于阈值的结果
-                    if (score < config.embedding.minScoreThreshold) continue;
+                    const threshold = config.embedding?.minScoreThreshold ?? 0.3;
+                    if (score < threshold) continue;
 
                     const existing = candidateMap.get(event.id);
                     if (!existing || score > (existing.embeddingScore || 0)) {

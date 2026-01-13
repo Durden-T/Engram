@@ -119,6 +119,29 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
                     />
                 </div>
 
+                {/* 预览开关 */}
+                {(recallConfig?.usePreprocessing ?? config.enabled) && (
+                    <div
+                        className="flex items-center justify-between p-2 rounded-md"
+                        style={{
+                            backgroundColor: 'var(--surface, rgba(255,255,255,0.05))',
+                            border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                        }}
+                    >
+                        <div className="flex items-center gap-2 pl-2">
+                            <span className="text-xs text-muted-foreground">预览修订</span>
+                        </div>
+                        <Switch
+                            checked={config.preview}
+                            onChange={() => {
+                                const newConfig = { ...config, preview: !config.preview };
+                                setConfig(newConfig);
+                                preprocessor.saveConfig(newConfig);
+                            }}
+                        />
+                    </div>
+                )}
+
                 {/* 模式选择 */}
                 {(recallConfig?.usePreprocessing ?? config.enabled) && (
                     <div className="space-y-2">

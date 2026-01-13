@@ -125,9 +125,12 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                     description="从向量数据库中检索的候选数量"
                     min={1}
                     max={100}
-                    value={config.embedding.topK}
+                    value={config.embedding?.topK ?? 20}
                     onChange={(val) => updateConfig({
-                        embedding: { ...config.embedding, topK: val }
+                        embedding: {
+                            topK: val,
+                            minScoreThreshold: config.embedding?.minScoreThreshold ?? 0.3
+                        }
                     })}
                 />
 
@@ -137,9 +140,12 @@ export const RecallConfigForm: React.FC<RecallConfigFormProps> = ({ config, onCh
                     min={0}
                     max={1}
                     step={0.05}
-                    value={config.embedding.minScoreThreshold}
+                    value={config.embedding?.minScoreThreshold ?? 0.3}
                     onChange={(val) => updateConfig({
-                        embedding: { ...config.embedding, minScoreThreshold: val }
+                        embedding: {
+                            topK: config.embedding?.topK ?? 20,
+                            minScoreThreshold: val
+                        }
                     })}
                 />
             </div>
