@@ -18232,7 +18232,7 @@ const $D = ({ onNavigate: e }) => {
       ]
     }
   );
-}, VD = "0.9.4", Oj = {
+}, VD = "0.9.6", Oj = {
   version: VD
 }, m_ = ({
   activeTab: e,
