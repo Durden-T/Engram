@@ -14,15 +14,17 @@ import { SummaryPanel } from './SummaryPanel';
 import { VectorizationPanel } from './VectorizationPanel';
 import { RecallPanel } from './RecallPanel';
 import { EntityConfigPanel } from './EntityConfigPanel';
+import { BatchProcessingPanel } from './BatchProcessingPanel';
 
-type ProcessingTab = 'summary' | 'vectorization' | 'recall' | 'entity';
+type ProcessingTab = 'summary' | 'vectorization' | 'recall' | 'entity' | 'batch';
 
-// 主 Tab 配置 - V0.9.2: 实体提取放在记忆摘要后（同级）
+// 主 Tab 配置 - V0.9.6: 添加批量处理
 const MAIN_TABS: Tab[] = [
     { id: 'summary', label: '记忆摘要', icon: <FileText size={16} /> },
     { id: 'entity', label: '实体提取', icon: <Network size={16} /> },
     { id: 'vectorization', label: '向量化', icon: <Database size={16} /> },
     { id: 'recall', label: '召回配置', icon: <Search size={16} /> },
+    { id: 'batch', label: '批量处理', icon: <Layers size={16} /> },
 ];
 
 // 快速跳转链接配置（使用 page:subtab 格式精确跳转）
@@ -73,6 +75,9 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
 
                 {/* 实体提取 Tab - V0.9 */}
                 {activeTab === 'entity' && <EntityConfigPanel />}
+
+                {/* 批量处理 Tab - V0.9.6 */}
+                {activeTab === 'batch' && <BatchProcessingPanel />}
             </div>
         </div>
     );
