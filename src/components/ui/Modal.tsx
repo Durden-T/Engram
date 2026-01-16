@@ -134,7 +134,7 @@ export const RevisionModal: React.FC = () => {
                             <button
                                 onClick={handleReroll}
                                 disabled={isRerolling}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-muted-foreground border border-border hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors disabled:opacity-50"
                             >
                                 {isRerolling ? (
                                     <Loader2 size={16} className="animate-spin" />
@@ -151,14 +151,14 @@ export const RevisionModal: React.FC = () => {
                         <button
                             onClick={handleCancel}
                             disabled={isRerolling}
-                            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors disabled:opacity-50"
                         >
                             取消
                         </button>
                         <button
                             onClick={handleConfirm}
                             disabled={isRerolling}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-primary/20 text-primary border border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.2)] hover:bg-primary/30 hover:shadow-[0_0_15px_rgba(var(--primary),0.4)] focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
                         >
                             <Check size={16} />
                             确认写入

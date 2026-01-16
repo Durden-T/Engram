@@ -14,6 +14,7 @@ import { getSTContext } from '@/tavern/bridge';
 import { EntityType } from '@/services/types/graph';
 import type { RecallConfig, EntityExtractConfig, EmbeddingConfig } from '@/services/api/types';
 import type { PreprocessingConfig } from '@/services/preprocessing/types';
+import { DEFAULT_PREPROCESSING_CONFIG } from '@/services/preprocessing/types';
 
 // ==================== 类型定义 ====================
 
@@ -202,11 +203,31 @@ export function useDashboardData(refreshInterval = 2000): DashboardData & {
                 break;
 
             case 'preprocessing':
-                const currentPreprocessingConfig = SettingsManager.get('preprocessingConfig') || {};
+                const currentPreprocessingConfig = SettingsManager.get('preprocessingConfig') || DEFAULT_PREPROCESSING_CONFIG;
+                const newPreprocessingEnabled = !features.preprocessing;
+
+                // 1. 更新 Preprocessing Config
                 SettingsManager.set('preprocessingConfig', {
                     ...currentPreprocessingConfig,
-                    enabled: !features.preprocessing,
+                    enabled: newPreprocessingEnabled,
                 } as any);
+
+                // 2. 同时更新 Recall Config 以保持同步 (QuickPanel 依赖此逻辑)
+                // [FIX]: 确保 apiSettings 完整，防止覆盖丢失其他配置
+                import('@/services/api/types').then(({ getDefaultAPISettings }) => {
+                    const currentApiSettings = SettingsManager.get('apiSettings');
+                    // 如果不存在，使用默认值
+                    const safeApiSettings = currentApiSettings || getDefaultAPISettings();
+                    const currentRecallConfig = safeApiSettings.recallConfig || {};
+
+                    SettingsManager.set('apiSettings', {
+                        ...safeApiSettings,
+                        recallConfig: {
+                            ...currentRecallConfig,
+                            usePreprocessing: newPreprocessingEnabled
+                        }
+                    } as any);
+                });
                 break;
         }
 

@@ -22,8 +22,8 @@ import { preprocessor } from '@/services/preprocessing';
 import type { PreprocessingConfig } from '@/services/preprocessing/types';
 import { DEFAULT_PREPROCESSING_CONFIG } from '@/services/preprocessing/types';
 import { Search, AlertCircle, Wand2 } from 'lucide-react';
-import { useAPIPresets } from '@/hooks/useAPIPresets';
 import { Logger } from '@/lib/logger';
+import { SettingsManager } from '@/services/settings/Persistence';
 
 interface QuickPanelProps {
     isOpen: boolean;
@@ -34,72 +34,99 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
     const [config, setConfig] = useState<PreprocessingConfig>(
         preprocessor.getConfig() || DEFAULT_PREPROCESSING_CONFIG
     );
+    const [recallConfig, setRecallConfig] = useState<any>(
+        SettingsManager.get('apiSettings')?.recallConfig || {}
+    );
+    const [templates, setTemplates] = useState<any[]>(
+        SettingsManager.get('apiSettings')?.promptTemplates || []
+    );
 
-    // 获取所有预处理模板
-    const { settings, updateRecallConfig, save } = useAPIPresets();
-    const recallConfig = settings.recallConfig;
-
-    // 计算当前的启用状态：必须两者都开启才算开启 (但 UI 上我们尽量同步它们)
+    // 计算当前的启用状态
     const isIdsEnabled = config.enabled && (recallConfig?.usePreprocessing ?? false);
 
     const availableModes = useMemo(() => {
-        return settings.promptTemplates
-            .filter(t => t.category === 'preprocessing')
-            .map(t => ({
+        return templates
+            .filter((t: any) => t.category === 'preprocessing')
+            .map((t: any) => ({
                 id: t.id,
                 name: t.name,
-                description: t.userPromptTemplate.slice(0, 30).replace(/\n/g, ' ') + '...', // 简略描述
-                icon: Wand2, // 统一图标，或者根据名称关键词映射不同图标
+                description: t.userPromptTemplate.slice(0, 30).replace(/\n/g, ' ') + '...',
+                icon: Wand2,
             }));
-    }, [settings.promptTemplates]);
+    }, [templates]);
 
-    // 刷新配置
+    // 轮询同步配置 (解决 Dashboard -> QuickPanel 的单向同步问题)
     useEffect(() => {
-        if (isOpen) {
-            setConfig(preprocessor.getConfig() || DEFAULT_PREPROCESSING_CONFIG);
-        }
-    }, [isOpen]);
+        if (!isOpen) return;
 
-    // 切换启用状态 (同时更新 recallConfig 和 preprocessorConfig)
+        const syncData = () => {
+            // 1. Preprocessing Config
+            const newPre = preprocessor.getConfig() || DEFAULT_PREPROCESSING_CONFIG;
+            setConfig(prev => (JSON.stringify(prev) !== JSON.stringify(newPre) ? newPre : prev));
+
+            // 2. Recall Config & Templates
+            const apiSettings = SettingsManager.get('apiSettings');
+            if (apiSettings) {
+                const newRecall = apiSettings.recallConfig || {};
+                setRecallConfig((prev: any) => (JSON.stringify(prev) !== JSON.stringify(newRecall) ? newRecall : prev));
+
+                const newTemplates = apiSettings.promptTemplates || [];
+                // 模板很少变，这里简单比较长度或者不做深度比较也行，但为了严谨还是对比一下
+                if (newTemplates.length !== templates.length) {
+                    setTemplates(newTemplates);
+                }
+            }
+        };
+
+        syncData(); // 立即执行一次
+        const interval = setInterval(syncData, 1000);
+        return () => clearInterval(interval);
+    }, [isOpen, templates.length]);
+
+    // 切换启用状态
     const handleToggle = useCallback(() => {
-        // 只要当前是关闭的，就试图开启；只要是开启的，就试图关闭
-        // 以 recallConfig 为准
         const currentRecallState = recallConfig?.usePreprocessing ?? false;
         const newState = !currentRecallState;
 
         Logger.debug('QuickPanel', '切换预处理状态', { from: currentRecallState, to: newState });
 
-        // 1. 更新全局 Recall Config
-        if (recallConfig) {
-            updateRecallConfig({ ...recallConfig, usePreprocessing: newState });
+        // 读取最新设置以防覆盖
+        const apiSettings = SettingsManager.get('apiSettings');
+        if (apiSettings && apiSettings.recallConfig) {
+            const newRecallConfig = { ...apiSettings.recallConfig, usePreprocessing: newState };
+            SettingsManager.set('apiSettings', {
+                ...apiSettings,
+                recallConfig: newRecallConfig
+            } as any);
         }
 
-        // 2. 更新 Preprocessor Config
+        // 更新 Preprocessor Config
         const newPreConfig = { ...config, enabled: newState };
         setConfig(newPreConfig);
-        preprocessor.saveConfig(newPreConfig);
+        SettingsManager.set('preprocessingConfig', newPreConfig);
+    }, [config, recallConfig]);
 
-        // 3. 立即持久化（关键修复：save() 调用）
-        save();
-    }, [config, recallConfig, updateRecallConfig, save]);
-
-    // 切换模式 (选中模板时自动开启预处理)
+    // 切换模式
     const handleModeChange = useCallback((templateId: string) => {
         Logger.debug('QuickPanel', '切换预处理模式', { templateId });
 
         // 1. 更新 Preprocessor Config
         const newPreConfig = { ...config, templateId: templateId, enabled: true };
         setConfig(newPreConfig);
-        preprocessor.saveConfig(newPreConfig);
+        SettingsManager.set('preprocessingConfig', newPreConfig);
 
         // 2. 确保全局 Recall Config 也是开启的
-        if (recallConfig && !recallConfig.usePreprocessing) {
-            updateRecallConfig({ ...recallConfig, usePreprocessing: true });
+        const apiSettings = SettingsManager.get('apiSettings');
+        if (apiSettings && apiSettings.recallConfig) {
+            if (!apiSettings.recallConfig.usePreprocessing) {
+                const newRecallConfig = { ...apiSettings.recallConfig, usePreprocessing: true };
+                SettingsManager.set('apiSettings', {
+                    ...apiSettings,
+                    recallConfig: newRecallConfig
+                } as any);
+            }
         }
-
-        // 3. 立即持久化
-        save();
-    }, [config, recallConfig, updateRecallConfig, save]);
+    }, [config]);
 
     // 如果当前选中的模板不在可用列表中（除了默认或未设置），给个提示
     const isCurrentTemplateValid = !config.templateId || availableModes.some(m => m.id === config.templateId);
@@ -147,7 +174,9 @@ export function QuickPanel({ isOpen, onClose }: QuickPanelProps) {
                             onChange={() => {
                                 const newConfig = { ...config, preview: !config.preview };
                                 setConfig(newConfig);
-                                preprocessor.saveConfig(newConfig);
+                                import('@/services/settings/Persistence').then(({ SettingsManager }) => {
+                                    SettingsManager.set('preprocessingConfig', newConfig);
+                                });
                             }}
                         />
                     </div>
