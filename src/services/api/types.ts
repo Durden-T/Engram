@@ -302,6 +302,16 @@ export interface EmbeddingConfig {
   concurrency: number;
   /** 保留最近 N 条不嵌入 (与 Trim.keepRecentCount 共享) */
   keepRecentCount?: number;
+
+  /** standalone 模式专用配置 */
+  standalone?: {
+    /** 触发类型: 'count' (条目数) 或 'token' (Token 数) */
+    triggerType: 'count' | 'token';
+    /** 条目数阈值 */
+    countLimit: number;
+    /** Token 阈值 */
+    tokenLimit: number;
+  };
 }
 
 // ==================== 实体提取配置 (V0.9.1) ====================
@@ -482,7 +492,12 @@ export const DEFAULT_EMBEDDING_CONFIG: EmbeddingConfig = {
   trigger: 'with_trim',
   concurrency: 5,
   keepRecentCount: 3,
-};
+  standalone: {
+    triggerType: 'count',
+    countLimit: 5,
+    tokenLimit: 10240,
+  },
+};;;
 
 /**
  * 创建默认 LLM 预设

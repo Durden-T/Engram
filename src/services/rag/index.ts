@@ -2,21 +2,24 @@
  * RAG 服务模块导出
  */
 
-export { embeddingService, EmbeddingService } from './EmbeddingService';
-export type { EmbedRequest, EmbedResult, EmbedProgressCallback } from './EmbeddingService';
+export { embeddingService, EmbeddingService } from "./EmbeddingService";
+export type { EmbedRequest, EmbedResult, EmbedProgressCallback } from "./EmbeddingService";
 
-export { retriever, Retriever } from './Retriever';
-export type { RetrievalResult } from './Retriever';
+export { standaloneEmbeddingTrigger, StandaloneEmbeddingTrigger } from "./StandaloneEmbeddingTrigger";
+export type { StandaloneTriggerStatus } from "./StandaloneEmbeddingTrigger";
 
-export { rerankService, RerankService } from './RerankService';
-export type { RerankResultItem } from './RerankService';
+export { retriever, Retriever } from "./Retriever";
+export type { RetrievalResult } from "./Retriever";
 
-export { scoreAndSort, mergeResults, calculateHybridScore, normalizeScores, applySticky } from './HybridScorer';
-export type { ScoredEvent, RecallResult } from './HybridScorer';
+export { rerankService, RerankService } from "./RerankService";
+export type { RerankResultItem } from "./RerankService";
 
-export { injector, Injector } from './Injector';
+export { scoreAndSort, mergeResults, calculateHybridScore, normalizeScores, applySticky } from "./HybridScorer";
+export type { ScoredEvent, RecallResult } from "./HybridScorer";
 
-export { RecallLogService } from './RecallLogService';
+export { injector, Injector } from "./Injector";
 
-export { stickyCache, StickyCache, DEFAULT_STICKY_CONFIG } from './StickyCache';
-export type { StickyConfig } from './StickyCache';
+export { RecallLogService } from "./RecallLogService";
+
+export { stickyCache, StickyCache, DEFAULT_STICKY_CONFIG } from "./StickyCache";
+export type { StickyConfig } from "./StickyCache";
