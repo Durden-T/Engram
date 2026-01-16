@@ -68,7 +68,7 @@ export const FeatureToggles: React.FC<FeatureTogglesProps> = ({ features, onTogg
                     return (
                         <div
                             key={key}
-                            className="flex items-center justify-between gap-3"
+                            className="flex items-start justify-between gap-3"
                         >
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className={`p-1.5 rounded-lg flex-shrink-0 ${isEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
@@ -76,11 +76,11 @@ export const FeatureToggles: React.FC<FeatureTogglesProps> = ({ features, onTogg
                                     <Icon size={16} />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h4 className={`text-sm font-medium truncate ${isEnabled ? 'text-foreground' : 'text-muted-foreground'
+                                    <h4 className={`text-sm font-medium leading-tight ${isEnabled ? 'text-foreground' : 'text-muted-foreground'
                                         }`}>
                                         {label}
                                     </h4>
-                                    <p className="text-[10px] text-muted-foreground truncate">
+                                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
                                         {description}
                                     </p>
                                 </div>

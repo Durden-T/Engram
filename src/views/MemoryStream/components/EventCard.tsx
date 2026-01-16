@@ -178,6 +178,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <MetaLine event={event} />
 
             {/* 摘要文本 */}
+            {/* 摘要文本 */}
             <p className="text-sm text-foreground mt-1 line-clamp-2">
                 {summaryText}
             </p>

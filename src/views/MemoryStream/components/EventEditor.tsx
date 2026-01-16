@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRe
 import type { EventNode } from '@/services/types/graph';
 import { Trash2, ArrowLeft, Save } from 'lucide-react';
 import { Divider } from '@/components/layout/Divider';
+import { TextField } from '@/views/APIPresets/components/FormField';
 
 // ==================== 类型定义 ====================
 
@@ -204,20 +205,23 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
             </div>
 
             {/* 摘要 - 自动生成，只读预览 */}
-            <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted-foreground">摘要 (自动生成)</label>
-                <div
-                    className="p-2 text-sm text-foreground/80 bg-muted/30 rounded border border-border/50 min-h-[60px]"
-                >
-                    {generateSummaryFromKV({
-                        event: eventType,
-                        time_anchor: timeAnchor,
-                        location,
-                        role: roleText.split(',').map(s => s.trim()).filter(Boolean),
-                        logic: logicText.split(',').map(s => s.trim()).filter(Boolean),
-                    }) || <span className="text-muted-foreground/50">填写下方字段自动生成...</span>}
-                </div>
-            </div>
+            {/* 摘要 - 自动生成，只读预览 */}
+            <TextField
+                label="摘要 (自动生成)"
+                value={generateSummaryFromKV({
+                    event: eventType,
+                    time_anchor: timeAnchor,
+                    location,
+                    role: roleText.split(',').map(s => s.trim()).filter(Boolean),
+                    logic: logicText.split(',').map(s => s.trim()).filter(Boolean),
+                })}
+                onChange={() => { }}
+                multiline
+                rows={4}
+                readOnly
+                placeholder="填写下方字段自动生成..."
+                className="font-mono text-sm"
+            />
 
             {/* 时间锚点 */}
             <div className="flex flex-col gap-1">

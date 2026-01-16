@@ -233,6 +233,9 @@ export const Settings: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Data Synchronization Section */}
+                    <SyncSection />
                 </section>
 
                 {/* Future settings sections can go here */}

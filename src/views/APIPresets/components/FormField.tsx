@@ -35,6 +35,7 @@ interface TextFieldProps extends BaseFieldProps {
     placeholder?: string;
     type?: 'text' | 'password' | 'email' | 'url';
     disabled?: boolean;
+    readOnly?: boolean;
     multiline?: boolean;
     rows?: number;
 }
@@ -54,6 +55,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     placeholder,
     type = 'text',
     disabled,
+    readOnly,
     multiline,
     rows = 3,
 }) => {
@@ -84,6 +86,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
                     disabled={disabled}
+                    readOnly={readOnly}
                     rows={rows}
                     style={inputStyle}
                     className="font-mono resize-y min-h-[80px] placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary transition-colors"
@@ -95,6 +98,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
                     disabled={disabled}
+                    readOnly={readOnly}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 disabled:opacity-50 focus:border-primary transition-colors"
                 />

@@ -16,6 +16,8 @@ export interface ChatMeta {
     value: unknown;
 }
 
+import { syncService } from '../SyncService';
+
 /**
  * ChatDatabase - 单个聊天的数据库类
  */
@@ -24,9 +26,12 @@ export class ChatDatabase extends Dexie {
     entities!: Table<EntityNode, string>;
     meta!: Table<ChatMeta, string>;
 
+    private chatId: string;
+
     constructor(chatId: string) {
         // 数据库名格式: Engram_{chatId}
         super(`Engram_${chatId}`);
+        this.chatId = chatId;
 
         // V0.9.4: Schema 升级
         // - entities 表添加 *aliases MultiEntry 索引支持高效别名查询
@@ -38,10 +43,57 @@ export class ChatDatabase extends Dexie {
             // Meta: 状态存储 (lastSummarizedFloor 等)
             meta: 'key'
         });
+
+        // 注册数据变动监听钩子
+        this.events.hook('creating', () => { syncService.scheduleUpload(this.chatId); });
+        this.events.hook('updating', () => { syncService.scheduleUpload(this.chatId); });
+        this.events.hook('deleting', () => { syncService.scheduleUpload(this.chatId); });
+
+        this.entities.hook('creating', () => { syncService.scheduleUpload(this.chatId); });
+        this.entities.hook('updating', () => { syncService.scheduleUpload(this.chatId); });
+        this.entities.hook('deleting', () => { syncService.scheduleUpload(this.chatId); });
     }
 }
 
 // ======================== 数据库工厂 ========================
+
+// 导出数据接口
+export interface ChatDataDump {
+    events: EventNode[];
+    entities: EntityNode[];
+    meta: Record<string, any>;
+}
+
+/**
+ * 导出数据库所有数据
+ */
+export async function exportChatData(db: ChatDatabase): Promise<ChatDataDump> {
+    const events = await db.events.toArray();
+    const entities = await db.entities.toArray();
+    const metaArr = await db.meta.toArray();
+    const meta = metaArr.reduce((acc, cur) => ({ ...acc, [cur.key]: cur.value }), {});
+    return { events, entities, meta };
+}
+
+/**
+ * 导入数据到数据库（覆盖）
+ */
+export async function importChatData(db: ChatDatabase, data: ChatDataDump): Promise<void> {
+    await db.transaction('rw', db.events, db.entities, db.meta, async () => {
+        // 清空
+        await db.events.clear();
+        await db.entities.clear();
+        await db.meta.clear();
+
+        // 批量添加
+        await db.events.bulkAdd(data.events);
+        await db.entities.bulkAdd(data.entities);
+
+        // 转换 meta 因为它是一个 KV 表
+        const metaEntries = Object.entries(data.meta || {}).map(([key, value]) => ({ key, value }));
+        await db.meta.bulkAdd(metaEntries);
+    });
+}
 
 /** 数据库实例缓存 */
 const dbCache = new Map<string, ChatDatabase>();
