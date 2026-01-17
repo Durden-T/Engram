@@ -207,12 +207,8 @@ export interface PromptTemplate {
   systemPrompt: string;
   /** 用户提示词模板，支持变量 {{chatHistory}}, {{context}} 等 */
   userPromptTemplate: string;
-  /** 输出格式 */
-  outputFormat: 'json' | 'markdown' | 'plain';
   /** 注入模式: 'replace'=覆盖用户输入, 'append'=追加到用户输入之后, 'prepend'=添加到用户输入之前 */
   injectionMode?: 'replace' | 'append' | 'prepend';
-  /** 可用变量列表 */
-  availableVariables: string[];
   /** 创建时间 */
   createdAt: number;
   /** 更新时间 */
@@ -519,8 +515,6 @@ export function createPromptTemplate(
     boundPresetId: options.boundPresetId ?? null,
     systemPrompt: options.systemPrompt ?? '',
     userPromptTemplate: options.userPromptTemplate ?? '',
-    outputFormat: options.outputFormat ?? 'plain',
-    availableVariables: options.availableVariables ?? ['{{chatHistory}}', '{{context}}', '{{char}}', '{{user}}'],
     createdAt: now,
     updatedAt: now,
   };
@@ -543,7 +537,6 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 
 ---
 请按要求输出 JSON 格式的剧情总结：`,
-      outputFormat: 'json',
     }),
     createPromptTemplate('记忆精简', 'trim', {
       id: 'builtin_trim',
@@ -558,7 +551,6 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 {{engramSummaries}}
 
 请输出一条精简后的综合摘要。`,
-      outputFormat: 'json',
     }),
     createPromptTemplate('Query 增强', 'preprocessing', {
       id: 'builtin_query_enhance',
@@ -576,9 +568,7 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 
 ---
 请根据以上信息，输出扩展后的检索查询词。`,
-      outputFormat: 'plain',
       injectionMode: 'append', // 默认追加到用户输入后
-      availableVariables: ['{{worldbookContext}}', '{{chatHistory}}', '{{userInput}}', '{{char}}', '{{user}}'],
     }),
     createPromptTemplate('剧情编排', 'preprocessing', {
       id: 'builtin_plot_director',
@@ -596,9 +586,7 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 
 ---
 请根据以上信息，进行剧情规划并输出导演指令框架。`,
-      outputFormat: 'plain',
       injectionMode: 'append', // 剧情编排通常是给 AI 的指令，追加在用户输入后
-      availableVariables: ['{{worldbookContext}}', '{{context}}', '{{chatHistory}}', '{{userInput}}', '{{char}}', '{{user}}'],
     }),
     createPromptTemplate('描写增强', 'preprocessing', {
       id: 'builtin_description_enhance',
@@ -613,9 +601,7 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 
 ---
 请根据以上信息，输出增强后的描写内容。`,
-      outputFormat: 'plain',
       injectionMode: 'replace', // 描写增强通常是完全重写用户的输入
-      availableVariables: ['{{context}}', '{{chatHistory}}', '{{userInput}}', '{{char}}', '{{user}}'],
     }),
     // V0.9: 实体提取模板
     createPromptTemplate('实体提取', 'entity_extraction', {
@@ -629,8 +615,6 @@ export function getBuiltInPromptTemplates(): PromptTemplate[] {
 
 ---
 请按要求输出 JSON 格式的实体和关系数据。`,
-      outputFormat: 'json',
-      availableVariables: ['{{engramGraph}}', '{{worldbookContext}}', '{{char}}', '{{user}}'],
     }),
   ];
 }

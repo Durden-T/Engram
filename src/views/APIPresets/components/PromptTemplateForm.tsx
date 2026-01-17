@@ -2,9 +2,11 @@
  * 提示词模板编辑表单
  */
 import React from 'react';
-import { TextField, SelectField, SwitchField, FormSection } from './FormField';
+import { TextField, SelectField, FormSection } from './FormField';
 import type { PromptTemplate, PromptCategory, LLMPreset } from '@/services/api/types';
 import { PROMPT_CATEGORIES } from '@/services/api/types';
+import { Plus, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
 
 interface PromptTemplateFormProps {
     template: PromptTemplate;
@@ -12,9 +14,6 @@ interface PromptTemplateFormProps {
     defaultPresetId: string | null;
     onChange: (template: PromptTemplate) => void;
 }
-
-import { Plus, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
 
 // ... imports
 

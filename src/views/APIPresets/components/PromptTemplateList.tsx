@@ -41,8 +41,6 @@ export const PromptTemplateList: React.FC<PromptTemplateListProps> = ({
                 boundPresetId: template.boundPresetId,
                 systemPrompt: template.systemPrompt,
                 userPromptTemplate: template.userPromptTemplate,
-                outputFormat: template.outputFormat,
-                availableVariables: [...template.availableVariables],
             }
         );
         onAdd(copy);
