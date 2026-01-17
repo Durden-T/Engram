@@ -254,6 +254,7 @@ export const Settings: React.FC = () => {
 const SyncSection: React.FC = () => {
     const [syncConfig, setSyncConfig] = useState(SettingsManager.getSettings().syncConfig || { enabled: false, autoSync: true });
     const [syncStatus, setSyncStatus] = useState<'idle' | 'check' | 'syncing' | 'success' | 'error'>('idle');
+    const [syncMessage, setSyncMessage] = useState<string>('');
     const [lastSyncTime, setLastSyncTime] = useState<number>(0);
 
     const handleConfigChange = (key: keyof typeof syncConfig) => (checked: boolean) => {
@@ -265,34 +266,61 @@ const SyncSection: React.FC = () => {
     const handleManualSync = async () => {
         try {
             setSyncStatus('check');
+            setSyncMessage('检查中...');
+
             const { getSTContext } = await import('@/tavern/context');
             if (!getSTContext().chatId) {
                 alert('请先打开一个聊天以进行同步测试');
                 setSyncStatus('idle');
+                setSyncMessage('');
                 return;
             }
 
             const chatId = getSTContext().chatId;
             setSyncStatus('syncing');
+            setSyncMessage('同步中...');
 
-            // 1. 先检查远程状态
             const { syncService } = await import('@/services/SyncService');
-            // const status = await syncService.getRemoteStatus(chatId);
 
-            // 简单逻辑：如果远程有更新则下载，否则上传
-            // 这里为了演示，我们强制先上传
-            const success = await syncService.upload(chatId);
+            // 使用 autoSync 智能同步
+            const result = await syncService.autoSync(chatId);
 
-            if (success) {
-                setSyncStatus('success');
-                setLastSyncTime(Date.now());
-                setTimeout(() => setSyncStatus('idle'), 3000);
-            } else {
-                setSyncStatus('error');
+            setLastSyncTime(Date.now());
+
+            switch (result) {
+                case 'downloaded':
+                    setSyncStatus('success');
+                    setSyncMessage('已从服务端恢复');
+                    break;
+                case 'uploaded':
+                    setSyncStatus('success');
+                    setSyncMessage('已上传至服务端');
+                    break;
+                case 'synced':
+                    setSyncStatus('success');
+                    setSyncMessage('无需同步');
+                    break;
+                case 'ignored':
+                    setSyncStatus('idle');
+                    setSyncMessage('服务端无数据');
+                    break;
+                case 'error':
+                default:
+                    setSyncStatus('error');
+                    setSyncMessage('同步失败');
+                    break;
+            }
+
+            if (result !== 'error') {
+                setTimeout(() => {
+                    setSyncStatus('idle');
+                    setSyncMessage('');
+                }, 3000);
             }
         } catch (e) {
             console.error(e);
             setSyncStatus('error');
+            setSyncMessage('发生异常');
         }
     };
 
@@ -311,9 +339,13 @@ const SyncSection: React.FC = () => {
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                             <h4 className="font-medium text-foreground truncate">多端数据同步 (Beta)</h4>
-                            {syncStatus === 'syncing' && <span className="text-xs text-blue-500 animate-pulse">同步中...</span>}
-                            {syncStatus === 'success' && <span className="text-xs text-green-500">同步成功</span>}
-                            {syncStatus === 'error' && <span className="text-xs text-red-500">同步失败</span>}
+                            {syncStatus !== 'idle' && (
+                                <span className={`text-xs ${syncStatus === 'error' ? 'text-red-500' :
+                                    syncStatus === 'success' ? 'text-green-500' : 'text-blue-500 animate-pulse'
+                                    }`}>
+                                    {syncMessage}
+                                </span>
+                            )}
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                             利用 WebLLM 向量接口存储与同步
@@ -352,7 +384,7 @@ const SyncSection: React.FC = () => {
                             disabled={syncStatus === 'syncing'}
                             className="px-3 py-1.5 text-xs font-medium rounded-md bg-background border border-border hover:bg-muted transition-colors disabled:opacity-50"
                         >
-                            立即上传
+                            立即同步
                         </button>
                     </div>
 

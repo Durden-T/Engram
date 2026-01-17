@@ -10,6 +10,8 @@ import { useMemoryStore } from '@/stores/memoryStore';
 import { chatManager } from '@/services/database/ChatManager';
 import { MacroService } from '@/tavern/MacroService';
 import { Logger } from '@/lib/logger';
+import { ModelLogger } from "@/lib/logger/ModelLogger";
+import { getCurrentCharacter, getCurrentModel } from '@/tavern/context';
 import { notificationService } from '@/services/NotificationService';
 import { llmAdapter } from '@/services/api';
 import { SettingsManager } from '@/services/settings/Persistence';
@@ -143,10 +145,27 @@ export class EntityBuilder {
                 .replace('{{existingEntities}}', JSON.stringify(existingEntityInfo, null, 2))
                 .replace('{{worldbookContext}}', MacroService['cachedWorldbookContext'] || '');
 
-            // 4. 调用 LLM
+            // 4. 调用 LLM (接入 Model Logging)
+            const logId = ModelLogger.logSend({
+                type: 'entity_extraction',
+                systemPrompt,
+                userPrompt: finalUserPrompt,
+                floorRange: [floor, floor], // 暂时只标记触发楼层
+                model: getCurrentModel(),
+                character: getCurrentCharacter()?.name,
+            });
+
+            const startTime = Date.now();
             const response = await llmAdapter.generate({
                 systemPrompt,
                 userPrompt: finalUserPrompt,
+            });
+
+            ModelLogger.logReceive(logId, {
+                response: response.content,
+                status: response.success ? 'success' : 'error',
+                error: response.error,
+                duration: Date.now() - startTime,
             });
 
             if (!response.success || !response.content) {

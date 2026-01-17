@@ -1,5 +1,5 @@
 import { Logger } from '@/lib/logger';
-import { getSTContext } from '@/tavern/context';
+import { getSTContext, getRequestHeaders } from '@/tavern/context';
 import { ChatDatabase, getDbForChat, exportChatData, importChatData } from '@/services/database/db';
 import { debounce } from 'lodash';
 import { SettingsManager } from '@/services/settings/Persistence';
@@ -88,26 +88,34 @@ export class SyncService {
             const dump = await exportChatData(db);
             const timestamp = Date.now();
 
+            Logger.info(MODULE, `Exporting... Events: ${dump.events.length}, Entities: ${dump.entities.length}`);
+
+            const textContent = JSON.stringify({
+                ...dump,
+                meta: { ...dump.meta, syncTimestamp: timestamp, deviceId: this.deviceId }
+            });
+
             const payload = {
                 collectionId: this.getCollectionId(chatId),
                 source: VECTOR_SOURCE,
+                model: 'engram_store', // Fix 'undefined' folder
                 items: [{
                     hash: 0, // Hack: 总是覆盖同一个 Item
                     index: 0,
-                    text: JSON.stringify({
-                        ...dump,
-                        meta: { ...dump.meta, syncTimestamp: timestamp, deviceId: this.deviceId }
-                    }),
-                }]
+                    text: textContent,
+                }],
+                embeddings: {
+                    [textContent]: DUMMY_VECTOR
+                }
             };
 
             // 1. 先清除旧数据 (Purge Collection)
             await this.purge(chatId);
 
             // 2. 写入新数据
-            const response = await fetch('/api/vectors/insert', {
+            const response = await fetch('/api/vector/insert', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getRequestHeaders(),
                 body: JSON.stringify(payload)
             });
 
@@ -128,9 +136,9 @@ export class SyncService {
      */
     private async purge(chatId: string): Promise<void> {
         try {
-            await fetch('/api/vectors/purge', {
+            await fetch('/api/vector/purge', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     collectionId: this.getCollectionId(chatId)
                 })
@@ -145,34 +153,33 @@ export class SyncService {
      */
     public async getRemoteStatus(chatId: string): Promise<{ exists: boolean, timestamp: number, deviceId?: string }> {
         try {
-            const response = await fetch('/api/vectors/query', {
+            const response = await fetch('/api/vector/query', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     collectionId: this.getCollectionId(chatId),
                     searchText: 'dummy', // 任意文本，webllm 不会用到 embedding
                     source: VECTOR_SOURCE,
-                    topK: 1
+                    model: 'engram_store',
+                    topK: 1,
+                    embeddings: {
+                        'dummy': DUMMY_VECTOR
+                    }
                 })
             });
 
             if (!response.ok) return { exists: false, timestamp: 0 };
 
-            const list: { metadata: any[] }[] = await response.json();
-            // 注意: query 返回结构可能是 { metadata: [...] }[] 或者直接是 metadata 数组，取决于具体实现
-            // 这里根据 observed api vectors.js, queryCollection 返回 { metadata, hashes }
-            // 但 router.post('/query') 返回 json(results) -> { metadata, hashes }
+            // ... (rest of function) ...
 
-            // 修正：根据 endpoints/vectors.js:419 return res.json(results);
-            // results 是 { metadata: object[], hashes: number[] }
+            // Need to handle missing data or error cases gracefully
+            const list: { metadata: any[] }[] = await response.json();
             const data = list as unknown as { metadata: any[] };
 
             if (!data.metadata || data.metadata.length === 0) {
                 return { exists: false, timestamp: 0 };
             }
 
-            // 解析存储的 JSON
-            // 我们的 text 字段是 JSON 字符串
             const content = JSON.parse(data.metadata[0].text);
             return {
                 exists: true,
@@ -189,17 +196,21 @@ export class SyncService {
     /**
      * 下载并导入数据
      */
-    public async download(chatId: string): Promise<boolean> {
+    public async download(chatId: string): Promise<string> {
         try {
             Logger.info(MODULE, `Downloading for ${chatId}...`);
-            const response = await fetch('/api/vectors/query', {
+            const response = await fetch('/api/vector/query', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getRequestHeaders(),
                 body: JSON.stringify({
                     collectionId: this.getCollectionId(chatId),
                     searchText: 'dummy',
                     source: VECTOR_SOURCE,
-                    topK: 1
+                    model: 'engram_store',
+                    topK: 1,
+                    embeddings: {
+                        'dummy': DUMMY_VECTOR
+                    }
                 })
             });
 
@@ -208,18 +219,24 @@ export class SyncService {
             const data = await response.json() as { metadata: any[] };
             if (!data.metadata || data.metadata.length === 0) {
                 Logger.warn(MODULE, `No remote data found for ${chatId}`);
-                return false;
+                return 'no_data';
             }
 
             const dump = JSON.parse(data.metadata[0].text);
-            const db = await getDbForChat(chatId);
+            Logger.info(MODULE, `Received dump: ${dump.events?.length} events, ${dump.entities?.length} entities`);
 
+            const db = await getDbForChat(chatId);
             await importChatData(db, dump);
-            Logger.info(MODULE, `Import success for ${chatId}`);
-            return true;
+
+            // 验证写入
+            const eventCount = await db.events.count();
+            const entityCount = await db.entities.count();
+            Logger.info(MODULE, `Import verification: DB has ${eventCount} events, ${entityCount} entities`);
+
+            return 'success';
         } catch (error) {
             Logger.error(MODULE, `Download failed for ${chatId}`, error);
-            return false;
+            return 'error';
         }
     }
 
@@ -232,21 +249,13 @@ export class SyncService {
 
         // 1. 远程无数据 -> 上传
         if (!remoteStr.exists) {
-            // 仅在首次创建或手动开启同步时上传？
-            // 这里不做自动上传，避免意外覆盖？
-            // 策略：如果开启了 AutoSync (Settings)，则上传
-            // 暂时返回 ignored
             return 'ignored';
         }
 
         // 2. 检查本地时间
         const db = await getDbForChat(chatId);
-        // 需要在 db meta 中存储最后同步时间
-        // 获取本地 meta 表
         const meta = await db.meta.toArray();
         const localMeta = meta.length > 0 ? meta[0] : null;
-        // 假设我们在 meta 中存储了 syncTimestamp
-        // 由于 Dexie 对象是动态的，我们需要扩展类型或容错
         const localTs = (localMeta as any)?.syncTimestamp || 0;
 
         // 如果是本机刚上传的，忽略 (防回环)
@@ -257,8 +266,8 @@ export class SyncService {
         // 3. 比较
         if (remoteStr.timestamp > localTs) {
             Logger.info(MODULE, `Remote is newer (${remoteStr.timestamp} > ${localTs}), downloading...`);
-            const success = await this.download(chatId);
-            return success ? 'downloaded' : 'error';
+            const result = await this.download(chatId);
+            return result === 'success' ? 'downloaded' : 'error';
         } else {
             // 本地更新，等待 debounce 上传
             return 'synced';

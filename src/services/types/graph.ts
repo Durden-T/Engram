@@ -159,6 +159,17 @@ export interface EntityNode {
     /** 布局 X 坐标 (用户拖拽后持久化) */
     layout_x?: number;
 
+    /**
+     * Semantic Vector
+     * (New in V0.9.8)
+     */
+    embedding?: number[];
+
+    /**
+     * Whether this entity is vectorized
+     */
+    is_embedded?: boolean;
+
     /** 布局 Y 坐标 */
     layout_y?: number;
 }

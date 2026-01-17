@@ -61,8 +61,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                 boundPresetId: template.boundPresetId,
                 systemPrompt: template.systemPrompt,
                 userPromptTemplate: template.userPromptTemplate,
-                outputFormat: template.outputFormat,
-                availableVariables: template.availableVariables,
             },
         };
 
@@ -99,8 +97,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                             boundPresetId: data.template.boundPresetId,
                             systemPrompt: data.template.systemPrompt,
                             userPromptTemplate: data.template.userPromptTemplate,
-                            outputFormat: data.template.outputFormat,
-                            availableVariables: data.template.availableVariables,
                         }
                     );
                     // 保持原 ID
@@ -185,7 +181,6 @@ export const PromptTemplateCard: React.FC<PromptTemplateCardProps> = ({
                         <span className="truncate max-w-[120px]">
                             {template.boundPresetId ? `BOUND: ${template.boundPresetId}` : 'DEFAULT PRESET'}
                         </span>
-                        <span>{template.outputFormat.toUpperCase()}</span>
                     </div>
                 </div>
             </div>

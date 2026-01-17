@@ -19,10 +19,11 @@ graph TD
         Preprocessor -->|LLM| UnifiedQuery[Unified Query\n统一检索指令]
     end
     
-    subgraph Stage 2: 向量检索
+    subgraph Stage 2: 统一向量检索 (Unified Vector Retrieval)
         UnifiedQuery -->|Embed| QueryVec[查询向量]
-        DB[(Engram DB)] -->|Embed| EventVec[事件向量]
-        QueryVec & EventVec -->|Cosine Similarity| Candidates[候选集 Top-K]
+        DB[(Engram DB)] -->|Embed| EventVec[事件向量] & EntityVec[实体向量]
+        QueryVec -->|Cosine Similarity| Candidates[混合候选集 Top-K]
+        EventVec & EntityVec --> Candidates
     end
     
     subgraph Stage 3: 重排序 (可选)

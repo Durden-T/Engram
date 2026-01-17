@@ -1,6 +1,6 @@
 /**
  * STContext - SillyTavern 上下文获取模块
- * 
+ *
  * 统一的上下文获取入口，消除各模块重复定义
  */
 
@@ -28,6 +28,8 @@ export interface STContext {
         emit: (event: string, data: any) => void;
     };
     event_types?: Record<string, string>;
+    // 工具函数
+    getRequestHeaders?: (options?: { omitContentType?: boolean }) => Record<string, string>;
 }
 
 /** ST 消息类型 */
@@ -116,4 +118,16 @@ export function getCurrentModel(): string | undefined {
  */
 export function isSTAvailable(): boolean {
     return getSTContext() !== null;
+}
+
+/**
+ * 获取请求头 (包含 CSRF Token)
+ */
+export function getRequestHeaders(options?: { omitContentType?: boolean }): Record<string, string> {
+    const ctx = getSTContext();
+    if (ctx?.getRequestHeaders) {
+        return ctx.getRequestHeaders(options);
+    }
+    // Fallback: 如果拿不到 context，至少返回 Content-Type
+    return { 'Content-Type': 'application/json' };
 }

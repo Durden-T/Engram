@@ -1,6 +1,6 @@
 /**
  * ModelLogger - 模型调用日志
- * 
+ *
  * 记录所有 LLM 调用的发送和接收信息
  * 仅内存存储，不导出，不持久化
  */
@@ -12,7 +12,7 @@ export interface ModelLogEntry {
     /** 时间戳 */
     timestamp: number;
     /** 调用类型 */
-    type: 'summarize' | 'trim' | 'vectorize' | 'query' | 'other';
+    type: 'summarize' | 'trim' | 'vectorize' | 'query' | 'entity_extraction' | 'other';
     /** 方向：发送/接收 */
     direction: 'sent' | 'received';
 
