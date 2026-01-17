@@ -5,7 +5,7 @@
  * - KV 自动烧录进 summary（始终开启）
  * - 编辑即时反馈到父组件
  */
-import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useRef } from 'react';
 import type { EventNode } from '@/services/types/graph';
 import { Trash2, ArrowLeft, Save } from 'lucide-react';
 import { Divider } from '@/components/layout/Divider';
@@ -26,6 +26,15 @@ interface EventEditorProps {
 export interface EventEditorHandle {
     save: () => void;
     isDirty: () => boolean;
+}
+
+interface FieldOverrides {
+    eventType?: string;
+    timeAnchor?: string;
+    location?: string;
+    roleText?: string;
+    logicText?: string;
+    score?: number;
 }
 
 // ==================== 样式 ====================
@@ -105,6 +114,17 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
     const [isDirty, setIsDirty] = useState(false);
     const [lastEventId, setLastEventId] = useState<string | null>(null);
 
+    const isComposingRef = useRef(false);
+    const isMountedRef = useRef(true);
+    const blurTimeoutRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+        };
+    }, []);
+
     // 同步事件数据到表单
     useEffect(() => {
         if (event && event.id !== lastEventId) {
@@ -120,64 +140,85 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
         }
     }, [event, lastEventId]);
 
-    // 构建更新对象
-    const buildUpdates = useCallback((): Partial<EventNode> => {
-        const kv = {
-            event: eventType,
-            time_anchor: timeAnchor,
-            location,
-            role: roleText.split(',').map(s => s.trim()).filter(Boolean),
-            logic: logicText.split(',').map(s => s.trim()).filter(Boolean),
-            causality: event?.structured_kv?.causality || '',
-        };
-
-        // 自动生成 summary
-        const autoSummary = generateSummaryFromKV(kv);
-
-        return {
-            summary: autoSummary || summary,
-            structured_kv: {
-                ...(event?.structured_kv || {}),
-                ...kv,
-            },
-            significance_score: score,
-        };
-    }, [event, eventType, timeAnchor, location, roleText, logicText, score, summary]);
-
-    // 字段变化时立即通知父组件
-    const handleFieldChange = useCallback(() => {
-        if (!event) return;
-        setIsDirty(true);
-
-        // 延迟一点点让 state 更新
-        setTimeout(() => {
-            const updates = buildUpdates();
-            onSave?.(event.id, updates);
-        }, 0);
-    }, [event, buildUpdates, onSave]);
-
-    // 暴露方法给父组件
-    useImperativeHandle(ref, () => ({
-        save: handleFieldChange,
-        isDirty: () => isDirty,
-    }), [handleFieldChange, isDirty]);
-
     const handleDelete = () => {
         if (confirm('确定删除这个事件吗？此操作不可撤销。')) {
             onDelete?.(event!.id);
         }
     };
 
-    // 更新字段并触发同步
-    const updateField = (setter: (v: string) => void, value: string) => {
+    const syncToParent = useCallback((overrides: FieldOverrides = {}) => {
+        if (!event) return;
+
+        const fields = {
+            eventType: overrides.eventType ?? eventType,
+            timeAnchor: overrides.timeAnchor ?? timeAnchor,
+            location: overrides.location ?? location,
+            roleText: overrides.roleText ?? roleText,
+            logicText: overrides.logicText ?? logicText,
+            score: overrides.score ?? score,
+        };
+
+        const splitTrim = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean);
+
+        const kv = {
+            event: fields.eventType,
+            time_anchor: fields.timeAnchor,
+            location: fields.location,
+            role: splitTrim(fields.roleText),
+            logic: splitTrim(fields.logicText),
+            causality: event.structured_kv?.causality || '',
+        };
+
+        const autoSummary = generateSummaryFromKV(kv);
+
+        onSave?.(event.id, {
+            summary: autoSummary || summary,
+            structured_kv: { ...event.structured_kv, ...kv },
+            significance_score: fields.score,
+        });
+    }, [event, eventType, timeAnchor, location, roleText, logicText, score, summary, onSave]);
+
+    // 暴露方法给父组件
+    useImperativeHandle(ref, () => ({
+        save: () => syncToParent(),
+        isDirty: () => isDirty,
+    }), [syncToParent, isDirty]);
+
+    const handleCompositionStart = () => {
+        isComposingRef.current = true;
+    };
+
+    const handleCompositionEnd = (
+        e: React.CompositionEvent<HTMLInputElement>,
+        setter: (v: string) => void,
+        fieldName: keyof FieldOverrides
+    ) => {
+        isComposingRef.current = false;
+        if (!isMountedRef.current) return;
+
+        const value = e.currentTarget.value;
         setter(value);
-        // 使用 setTimeout 确保 state 更新后再同步
-        setTimeout(handleFieldChange, 10);
+        setIsDirty(true);
+        syncToParent({ [fieldName]: value });
+    };
+
+    const updateField = (setter: (v: string) => void, value: string, fieldName: keyof FieldOverrides) => {
+        setter(value);
+        setIsDirty(true);
+        if (!isComposingRef.current) syncToParent({ [fieldName]: value });
+    };
+
+    const handleBlur = () => {
+        if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = window.setTimeout(() => {
+            if (isMountedRef.current && isDirty) syncToParent();
+        }, 50);
     };
 
     const updateScore = (value: number) => {
         setScore(value);
-        setTimeout(handleFieldChange, 10);
+        setIsDirty(true);
+        syncToParent({ score: value });
     };
 
     if (!event) {
@@ -197,14 +238,16 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
                 <input
                     type="text"
                     value={eventType}
-                    onChange={(e) => updateField(setEventType, e.target.value)}
+                    onChange={(e) => updateField(setEventType, e.target.value, 'eventType')}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={(e) => handleCompositionEnd(e, setEventType, 'eventType')}
+                    onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
                     placeholder="如：任务确认、战斗结束"
                 />
             </div>
 
-            {/* 摘要 - 自动生成，只读预览 */}
             {/* 摘要 - 自动生成，只读预览 */}
             <TextField
                 label="摘要 (自动生成)"
@@ -229,7 +272,10 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
                 <input
                     type="text"
                     value={timeAnchor}
-                    onChange={(e) => updateField(setTimeAnchor, e.target.value)}
+                    onChange={(e) => updateField(setTimeAnchor, e.target.value, 'timeAnchor')}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={(e) => handleCompositionEnd(e, setTimeAnchor, 'timeAnchor')}
+                    onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
                     placeholder="如：太阳历1023年4月4日"
@@ -242,7 +288,10 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
                 <input
                     type="text"
                     value={location}
-                    onChange={(e) => updateField(setLocation, e.target.value)}
+                    onChange={(e) => updateField(setLocation, e.target.value, 'location')}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={(e) => handleCompositionEnd(e, setLocation, 'location')}
+                    onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
                     placeholder="如：边境公会大厅"
@@ -255,7 +304,10 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
                 <input
                     type="text"
                     value={roleText}
-                    onChange={(e) => updateField(setRoleText, e.target.value)}
+                    onChange={(e) => updateField(setRoleText, e.target.value, 'roleText')}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={(e) => handleCompositionEnd(e, setRoleText, 'roleText')}
+                    onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
                     placeholder="如：{{user}}, 赫伯"
@@ -268,7 +320,10 @@ export const EventEditor = forwardRef<EventEditorHandle, EventEditorProps>(({
                 <input
                     type="text"
                     value={logicText}
-                    onChange={(e) => updateField(setLogicText, e.target.value)}
+                    onChange={(e) => updateField(setLogicText, e.target.value, 'logicText')}
+                    onCompositionStart={handleCompositionStart}
+                    onCompositionEnd={(e) => handleCompositionEnd(e, setLogicText, 'logicText')}
+                    onBlur={handleBlur}
                     style={inputStyle}
                     className="placeholder:text-muted-foreground/40 focus:border-primary transition-colors"
                     placeholder="如：起点, 伏笔"
